@@ -108,7 +108,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="space-y-6">
-            {hotAreas.map((area, idx) => (
+            {hotAreas.map((area: { name: string; count: number; views: number }, idx: number) => (
               <div key={idx} className="flex items-center justify-between group cursor-default">
                 <div className="flex items-center gap-4">
                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-xs font-black text-gray-400 group-hover:bg-gray-900 group-hover:text-white transition-colors">
