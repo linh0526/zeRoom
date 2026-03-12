@@ -10,7 +10,7 @@ export async function GET(
     const { id } = await params;
     await dbConnect();
     
-    const post = await Post.findById(id).select("images").lean();
+    const post: any = await Post.findById(id).select("images").lean();
     
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });

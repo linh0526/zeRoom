@@ -29,7 +29,7 @@ export const authOptions: any = {
       async authorize(credentials) {
         await dbConnect();
         if (credentials?.email && credentials?.password) {
-          let user = await User.findOne({ email: credentials.email }).lean();
+          let user: any = await User.findOne({ email: credentials.email }).lean();
           if (!user) {
              return null;
           }
