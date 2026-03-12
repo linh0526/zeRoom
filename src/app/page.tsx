@@ -28,7 +28,7 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
   const prevImg = () => setCurrentIdx(p => (p - 1 + images.length) % images.length);
 
   return (
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1000] w-[90%] max-w-4xl bg-white rounded-2xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1000] w-[90%] max-w-2xl bg-white rounded-2xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
       <div className="flex justify-between items-center mb-3 px-1">
         <h3 className="font-bold text-gray-800 text-sm line-clamp-1">{room.title}</h3>
         <button onClick={onClose} className="p-1 hover:bg-gray-100 text-gray-500 hover:text-blue-600 rounded-full transition-colors shrink-0">
@@ -36,18 +36,30 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
         </button>
       </div>
       <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden mb-4 group bg-gray-100">
-         <img src={images[currentIdx]} alt={room.title} className="w-full h-full object-contain" />
+        <img 
+          src={images[currentIdx] || ''} 
+          alt={room.title} 
+          className="w-full h-full object-contain" 
+        />
+        {!images[currentIdx] && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50">
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-blue-200"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Không có ảnh</p>
+          </div>
+        )}
          
-         {images.length > 1 && (
-           <>
-             <button onClick={prevImg} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
-               <ChevronLeft className="w-6 h-6" />
-             </button>
-             <button onClick={nextImg} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
-               <ChevronRight className="w-6 h-6" />
-             </button>
-           </>
-         )}
+        {images.length > 1 && (
+          <>
+            <button onClick={prevImg} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button onClick={nextImg} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </>
+        )}
       </div>
 
       {images.length > 1 && (
@@ -71,14 +83,6 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
           </p>
           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Giá thuê / tháng</p>
         </div>
-        
-        <a 
-          href={`/room/${room._id}`}
-          className="px-8 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-black transition-all shadow-lg shadow-gray-200 flex items-center gap-2 group"
-        >
-          Xem chi tiết
-          <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        </a>
       </div>
     </div>
   );
@@ -96,11 +100,35 @@ export default function Home() {
 
   const fetchRooms = async () => {
     try {
-      const res = await fetch("/api/posts");
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setAllRooms(data);
-        setRooms(data);
+      setLoading(true);
+      
+      // 1. Fetch ALL rooms without images (for the map - fast)
+      const allRes = await fetch("/api/posts?includeImages=false");
+      const allData = await allRes.json();
+      
+      if (Array.isArray(allData)) {
+        setAllRooms(allData);
+        setRooms(allData);
+        
+        // 2. Fetch latest 50 rooms WITH images (for the sidebar - manageable)
+        const recentRes = await fetch("/api/posts?includeImages=true&limit=50");
+        const recentData = await recentRes.json();
+        
+        if (Array.isArray(recentData)) {
+          // Create a map of rooms with images
+          const imageMap = new Map(recentData.map(r => [r._id, r.images]));
+          
+          // Update the state with images where available
+          setAllRooms(prev => prev.map(room => ({
+            ...room,
+            images: imageMap.get(room._id) || room.images
+          })));
+          
+          setRooms(prev => prev.map(room => ({
+            ...room,
+            images: imageMap.get(room._id) || room.images
+          })));
+        }
       }
     } catch (error) {
       console.error("Lỗi fetch rooms:", error);

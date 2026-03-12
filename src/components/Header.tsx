@@ -1,44 +1,90 @@
 "use client";
 
-import { MapPin, User, Bell, Menu, PhoneCall, X, Plus } from "lucide-react";
+import { MapPin, User, Bell, Menu, PhoneCall, X, Plus, LogOut, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
+import { useSession, signOut, signIn } from "next-auth/react";
+import { useState } from "react";
 
 export default function Header() {
+  const { data: session } = useSession();
+  const [showMenu, setShowMenu] = useState(false);
+
   return (
-    <header className="h-16 border-b border-gray-100 bg-slate-50/80 backdrop-blur-md flex items-center justify-between px-6 z-30 relative">
+    <header className="h-20 border-b border-gray-100 bg-white/80 backdrop-blur-md flex items-center justify-between px-8 z-[1001] sticky top-0">
       <div className="flex items-center gap-8">
         <Link href="/" className="flex items-center gap-2 transition-transform hover:scale-105">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl italic">z</span>
+          <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <span className="text-white font-bold text-2xl italic">z</span>
           </div>
-          <h1 className="text-xl font-bold tracking-tighter text-gray-900">
+          <h1 className="text-2xl font-black tracking-tighter text-gray-900 hidden sm:block">
             ze<span className="text-blue-600">Room</span>
           </h1>
         </Link>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-6">
         <Link 
           href="/post" 
-          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-full text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:bg-blue-700 hover:shadow-blue-500/40 transition-all active:scale-[0.98]"
+          className="flex items-center gap-2 px-5 sm:px-6 py-2.5 bg-blue-600 text-white rounded-[20px] text-[11px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:bg-blue-700 hover:shadow-blue-500/40 transition-all active:scale-[0.98]"
         >
           <Plus className="w-4 h-4" />
-          <span>Đăng tin cho thuê</span>
+          <span className="hidden sm:block">Đăng tin ngay</span>
+          <span className="block sm:hidden">Đăng tin</span>
         </Link>
-        <div className="h-8 w-px bg-gray-200 mx-1"></div>
-        <Link 
-          href="/contact"
-          className="flex items-center gap-2 px-3 py-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all group outline-none"
-        >
-          <PhoneCall className="w-4 h-4 group-hover:scale-110 transition-transform" />
-          <span className="text-[11px] font-black uppercase tracking-wider">Liên hệ</span>
+
+        {session && (
+          <Link 
+            href="/manage"
+            className="hidden md:flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-gray-500 hover:text-blue-600 transition-colors"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            <span>Quản lý bài đăng</span>
+          </Link>
+        )}
+
+        <Link href="/contact" className="hidden lg:flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-gray-500 hover:text-blue-600 transition-colors">
+          <PhoneCall className="w-4 h-4" />
+          <span>Liên hệ</span>
         </Link>
-        <button className="flex items-center gap-2 pl-2 pr-4 py-1.5 bg-white border border-gray-200 rounded-full hover:bg-gray-100 transition-all shadow-sm">
-          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-            <User className="w-3.5 h-3.5 text-blue-600" />
+
+        <div className="hidden sm:block h-8 w-px bg-gray-100"></div>
+
+        {!session ? (
+          <button 
+            onClick={() => signIn()}
+            className="flex items-center gap-3 px-5 py-2.5 bg-gray-900 text-white rounded-[20px] hover:bg-gray-800 transition-all shadow-lg active:scale-95"
+          >
+            <User className="w-4 h-4 text-blue-400" />
+            <span className="text-[11px] font-black uppercase tracking-wider">Đăng nhập</span>
+          </button>
+        ) : (
+          <div className="relative">
+            <button 
+              onClick={() => setShowMenu(!showMenu)}
+              className="flex items-center gap-3 pl-2 pr-4 py-1.5 bg-gray-50 border border-gray-100 rounded-[20px] hover:bg-gray-100 transition-all group"
+            >
+              <div className="w-9 h-9 rounded-xl overflow-hidden border-2 border-white shadow-sm shrink-0">
+               <img src={session.user?.image || `https://ui-avatars.com/api/?name=${session.user?.name}&background=6366f1&color=fff`} alt="User" />
+              </div>
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] font-black text-gray-900 leading-none">{session.user?.name}</span>
+                <span className="text-[9px] font-bold text-blue-500 uppercase mt-0.5 tracking-tighter">{session.user?.role || 'User'}</span>
+              </div>
+            </button>
+
+            {showMenu && (
+              <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                <button 
+                  onClick={() => signOut()}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 rounded-xl transition-colors text-xs font-bold text-red-600"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Đăng xuất
+                </button>
+              </div>
+            )}
           </div>
-          <span className="text-xs font-bold text-gray-700">Đăng nhập</span>
-        </button>
+        )}
       </div>
     </header>
   );

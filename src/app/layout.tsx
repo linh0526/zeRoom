@@ -3,6 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 
+import { Providers } from "@/components/Providers";
+import { Toaster } from "react-hot-toast";
+
 const inter = Inter({ subsets: ["latin", "vietnamese"] });
 
 export const metadata: Metadata = {
@@ -18,7 +21,10 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className={`${inter.className} antialiased`}>
-        {children}
+        <Providers>
+          <Toaster position="top-center" />
+          {children}
+        </Providers>
       </body>
     </html>
   );

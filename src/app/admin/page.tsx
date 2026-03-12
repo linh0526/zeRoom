@@ -35,10 +35,42 @@ export default function AdminDashboard() {
   };
 
   const stats = data ? [
-    { label: "Tin đang chờ duyệt", value: data.stats.pendingPosts.toString(), icon: Clock, color: "text-orange-500", bg: "bg-orange-50", trend: "+5 tin mới", trendUp: true },
-    { label: "Tổng tin hiển thị", value: data.stats.totalApproved.toLocaleString(), icon: FileText, color: "text-blue-500", bg: "bg-blue-50", trend: "+12% tháng này", trendUp: true },
-    { label: "Người dung mới", value: data.stats.totalUsers.toLocaleString(), icon: Users, color: "text-green-500", bg: "bg-green-50", trend: "+32 user/ngày", trendUp: true },
-    { label: "Báo cáo cần xử lý", value: data.stats.pendingReports.toString().padStart(2, '0'), icon: AlertTriangle, color: "text-red-500", bg: "bg-red-50", trend: "-2% so với tuần trước", trendUp: false },
+    { 
+      label: "Tin đang chờ duyệt", 
+      value: data.stats.pendingPosts.toString(), 
+      icon: Clock, 
+      color: "text-orange-500", 
+      bg: "bg-orange-50", 
+      trend: `+${data.stats.newPosts24h} tin mới`, 
+      trendUp: data.stats.newPosts24h > 0 
+    },
+    { 
+      label: "Tổng tin hiển thị", 
+      value: data.stats.totalApproved.toLocaleString(), 
+      icon: FileText, 
+      color: "text-blue-500", 
+      bg: "bg-blue-50", 
+      trend: "Hoạt động", 
+      trendUp: true 
+    },
+    { 
+      label: "Tổng số người dùng", 
+      value: data.stats.totalUsers.toLocaleString(), 
+      icon: Users, 
+      color: "text-green-500", 
+      bg: "bg-green-50", 
+      trend: `+${data.stats.newUsers24h} user/24h`, 
+      trendUp: data.stats.newUsers24h > 0 
+    },
+    { 
+      label: "Báo cáo cần xử lý", 
+      value: data.stats.pendingReports.toString().padStart(2, '0'), 
+      icon: AlertTriangle, 
+      color: "text-red-500", 
+      bg: "bg-red-50", 
+      trend: data.stats.pendingReports > 0 ? "Cần kiểm tra" : "An toàn", 
+      trendUp: data.stats.pendingReports === 0 
+    },
   ] : [];
 
   const hotAreas = data?.hotAreas || [];

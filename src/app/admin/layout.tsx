@@ -1,10 +1,19 @@
 import AdminSidebar from "@/components/AdminSidebar";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getServerSession(authOptions) as any;
+
+  if (!session || session.user?.role !== "admin") {
+    redirect("/");
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <AdminSidebar />
@@ -17,11 +26,11 @@ export default function AdminLayout({
           </div>
           <div className="flex items-center gap-6">
              <div className="flex flex-col items-end">
-                <span className="text-sm font-black text-gray-900 leading-none mb-1">Hoài Linh</span>
+                <span className="text-sm font-black text-gray-900 leading-none mb-1">{session.user?.name}</span>
                 <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full uppercase">Super Admin</span>
              </div>
              <div className="w-12 h-12 rounded-2xl bg-gray-900 border-4 border-white shadow-lg overflow-hidden shrink-0">
-               <img src="https://ui-avatars.com/api/?name=Admin&background=0D0D0D&color=fff" alt="Admin" className="w-full h-full object-cover" />
+               <img src={session.user?.image || `https://ui-avatars.com/api/?name=${session.user?.name}&background=0D0D0D&color=fff`} alt="Admin" className="w-full h-full object-cover" />
              </div>
           </div>
         </header>

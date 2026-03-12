@@ -27,10 +27,15 @@ const PostSchema = new Schema(
     user: { type: Schema.Types.ObjectId, ref: "User" }, // Poster
     views: { type: Number, default: 0 },
     expiresAt: { type: Date }, // For auto-hiding
+    note: { type: String }, // Additional notes/description
   },
   { timestamps: true }
 );
 
-// Auto-expire indexing if needed, but for now we'll handle it via logic
+// Add indexes for performance optimization
+PostSchema.index({ status: 1 });
+PostSchema.index({ createdAt: -1 });
+PostSchema.index({ status: 1, createdAt: -1 });
+
 const Post = models.Post || model("Post", PostSchema);
 export default Post;

@@ -111,22 +111,24 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
               <ChevronLeft className="w-4 h-4" /> Quay lại bộ lọc
             </button>
             <div className="relative w-full h-40 rounded-xl overflow-hidden mb-2 shadow-sm">
-              <img src={selectedRoom.images[0]} alt={selectedRoom.title} className="w-full h-full object-cover" />
+              <img src={selectedRoom.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2340&auto=format&fit=crop'} alt={selectedRoom.title} className="w-full h-full object-cover" />
             </div>
             <h2 className="text-lg font-bold text-gray-900 leading-tight">{selectedRoom.title}</h2>
             <p className="flex items-start gap-1.5 text-xs text-gray-500 leading-relaxed">
               <MapPin className="w-4 h-4 mt-0.5 text-blue-500 shrink-0" />
               <span>{selectedRoom.address}</span>
             </p>
-            <div className="text-2xl font-bold text-blue-600 mt-2 hover:text-blue-700 transition-colors select-none">
-              {(selectedRoom.price / 1000000).toLocaleString("vi-VN")} Tr₫
+            <div className="flex items-center justify-between mt-2">
+              <div className="text-2xl font-bold text-blue-600 select-none">
+                {(selectedRoom.price / 1000000).toLocaleString("vi-VN")} Tr₫
+              </div>
+              <Link 
+                href={`/room/${selectedRoom._id || selectedRoom.id}`}
+                className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
+              >
+                Xem chi tiết
+              </Link>
             </div>
-            <a 
-              href={`/room/${selectedRoom.id}`} 
-              className="block w-full text-center py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200 transition-all active:scale-[0.98]"
-            >
-              Xem chi tiết
-            </a>
             
             <h3 className="font-bold text-gray-800 border-t border-gray-100 pt-5 mt-5 uppercase text-xs tracking-wider">Đặc điểm thuê trọ</h3>
             <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-xs bg-gray-50 p-4 rounded-2xl">
@@ -136,7 +138,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
               </div>
               <div className="flex flex-col">
                 <span className="text-gray-400 mb-1">Loại hình:</span>
-                <span className="font-bold text-gray-800">{selectedRoom.type || "Phòng trọ"}</span>
+                <span className="font-bold text-gray-800">{selectedRoom.category || "Phòng trọ"}</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-gray-400 mb-1">Số phòng ngủ:</span>
@@ -185,8 +187,25 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                 className={`flex flex-col gap-3 p-3 rounded-2xl transition-all border cursor-pointer ${selectedRoom?._id === room._id ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50 border-gray-100 bg-white"} shadow-sm group`}
               >
                 <div className="flex gap-4">
-                  <div className="w-32 h-24 rounded-xl overflow-hidden flex-shrink-0 relative shadow-sm">
-                    <img src={room.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2340&auto=format&fit=crop'} alt={room.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                  <div className="w-32 h-24 rounded-xl overflow-hidden flex-shrink-0 relative shadow-sm bg-gray-100 italic">
+                    {/* Shimmer Effect while image is missing */}
+                    {!room.images?.[0] && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 bg-[length:200%_100%] animate-[shimmer_1.5s_infinite] shadow-inner" />
+                    )}
+                    <img 
+                      src={room.images?.[0] || ''} 
+                      alt={room.title} 
+                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                      loading="lazy"
+                      onLoad={(e) => (e.currentTarget.style.opacity = "1")}
+                      style={{ opacity: room.images?.[0] ? 0 : 1 }}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" 
+                    />
+                    {!room.images?.[0] && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                        <Home className="w-8 h-8 text-gray-200" />
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col justify-between py-0.5 flex-1 min-w-0">
                     <div className="space-y-1">

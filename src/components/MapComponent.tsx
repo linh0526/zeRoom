@@ -84,10 +84,15 @@ const RoomMarker = ({ room, isSelected, onRoomSelect }: { room: any, isSelected:
         <div className="flex flex-col w-[200px] bg-white rounded-xl overflow-hidden shadow-2xl">
           <div className="w-full h-28 relative">
             <img 
-              src={room.images[0]} 
+              src={room.images?.[0] || ''} 
               alt={room.title} 
-              className="w-full h-full object-cover"
+              className={`w-full h-full object-cover ${!room.images?.[0] ? 'bg-gray-100' : ''}`}
             />
+            {!room.images?.[0] && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-200"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </div>
+            )}
           </div>
           <div className="p-3">
             <h3 className="font-bold text-xs text-gray-800 line-clamp-1 mb-1">{room.title}</h3>

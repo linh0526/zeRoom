@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Info,
   Search,
-  X
+  X,
+  ScrollText
 } from "lucide-react";
 
 // Import Map components dynamically
@@ -45,7 +46,8 @@ export default function PostRentalPage() {
     searchCounter: 0,
     bedrooms: "1",
     amenities: DEFAULT_AMENITIES,
-    images: [] as string[]
+    images: [] as string[],
+    note: ""
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -89,24 +91,60 @@ export default function PostRentalPage() {
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    Array.from(files).forEach(file => {
-      if (file.size > 10 * 1024 * 1024) {
-        alert("File quá lớn, vui lòng chọn file dưới 10MB");
-        return;
-      }
+  const resizeImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ 
-          ...prev, 
-          images: [...prev.images, reader.result as string] 
-        }));
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const max_size = 1200; // Max dimension
+
+          if (width > height) {
+            if (width > max_size) {
+              height *= max_size / width;
+              width = max_size;
+            }
+          } else {
+            if (height > max_size) {
+              width *= max_size / height;
+              height = max_size;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", 0.7)); // Compress to 70% quality JPEG
+        };
+        img.src = e.target?.result as string;
       };
       reader.readAsDataURL(file);
     });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (const file of Array.from(files)) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert("File quá lớn, vui lòng chọn file dưới 10MB");
+        continue;
+      }
+      
+      try {
+        const compressedImage = await resizeImage(file);
+        setFormData(prev => ({ 
+          ...prev, 
+          images: [...prev.images, compressedImage] 
+        }));
+      } catch (error) {
+        console.error("Compression error:", error);
+      }
+    }
   };
 
   const removeImage = (index: number) => {
@@ -383,6 +421,11 @@ export default function PostRentalPage() {
                   />
                   <span className="absolute right-4 top-3.5 text-[11px] text-gray-400 font-bold uppercase tracking-tighter">/tháng</span>
                 </div>
+                {formData.price && (
+                  <p className="text-[11px] text-blue-600 font-bold mt-1 pl-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                    Số tiền: {Number(formData.price).toLocaleString("vi-VN")} VNĐ/ tháng
+                  </p>
+                )}
               </section>
               <section className="space-y-2">
                 <label className="text-[13px] font-bold text-gray-800">Diện tích (m²)</label>
@@ -427,6 +470,32 @@ export default function PostRentalPage() {
                 </div>
               </section>
             </div>
+            
+            <section className="mt-8 space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+                  Ghi chú khác
+                </label>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    const template = `- Giá điện: \n- Giá nước: \n- Phí dịch vụ: \n- Tiền cọc: \n- Thời hạn thuê tối thiểu: \n- Giờ giấc: \n- Nội quy: `;
+                    setFormData({...formData, note: template});
+                  }}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all border border-blue-100"
+                >
+                  <ScrollText className="w-4 h-4" />
+                  Sử dụng mẫu
+                </button>
+              </div>
+              <textarea 
+                placeholder="Nhập các thông tin về giá điện, nước, phí dịch vụ (quản lý, vệ sinh), điều khoản hợp đồng (tiền cọc, chính sách hoàn cọc), thời hạn thuê tối thiểu, giờ giấc sinh hoạt (giờ đóng/mở cửa), quy định sử dụng (nuôi thú cưng, nấu ăn, tổ chức tiệc) và các lưu ý quan trọng khác."
+                className="w-full p-6 bg-white border border-gray-200 rounded-3xl text-sm text-gray-900 outline-none focus:border-blue-500 transition-all shadow-sm min-h-[150px] leading-relaxed"
+                value={formData.note}
+                onChange={(e) => setFormData({...formData, note: e.target.value})}
+              />
+            </section>
 
             {/* Bottom Action Section */}
             <div className="mt-16 bg-gray-50 border border-gray-100 rounded-[40px] p-10 shadow-inner">
