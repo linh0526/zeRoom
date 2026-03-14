@@ -140,12 +140,31 @@ export default function Home() {
   const handleFilterChange = (filters: any) => {
     let filtered = [...allRooms];
     
+    // Lọc theo tìm kiếm
+    if (filters.search) {
+      const s = filters.search.toLowerCase();
+      filtered = filtered.filter(r => 
+        r.title.toLowerCase().includes(s) || 
+        r.address.toLowerCase().includes(s)
+      );
+    }
+
+    // Lọc theo loại hình
+    if (filters.category && filters.category !== "all") {
+      filtered = filtered.filter(r => r.category === filters.category);
+    }
+
+    // Lọc theo giá
     if (filters.minPrice !== undefined) {
       filtered = filtered.filter((room) => room.price >= filters.minPrice);
     }
-    
     if (filters.maxPrice !== undefined) {
       filtered = filtered.filter((room) => room.price <= filters.maxPrice);
+    }
+
+    // Lọc theo diện tích
+    if (filters.minArea !== undefined) {
+      filtered = filtered.filter(r => (r.areaSize || 0) >= filters.minArea);
     }
     
     setRooms(filtered);

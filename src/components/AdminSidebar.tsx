@@ -10,12 +10,14 @@ import {
   Settings, 
   LogOut,
   ShieldCheck,
-  TrendingUp
+  TrendingUp,
+  MessageSquare
 } from "lucide-react";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Tổng quan", href: "/admin" },
   { icon: FileText, label: "Quản lý tin đăng", href: "/admin/posts" },
+  { icon: MessageSquare, label: "Tin nhắn khách", href: "/admin/messages" },
   { icon: Users, label: "Người dùng", href: "/admin/users" },
   { icon: AlertTriangle, label: "Báo cáo vi phạm", href: "/admin/reports" },
   { icon: TrendingUp, label: "Thống kê", href: "/admin/analytics" },

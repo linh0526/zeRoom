@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import { 
   Upload, 
@@ -13,8 +14,11 @@ import {
   Info,
   Search,
   X,
-  ScrollText
+  ScrollText,
+  Link as LinkIcon
 } from "lucide-react";
+import toast from "react-hot-toast";
+import { useSession } from "next-auth/react";
 
 // Import Map components dynamically
 const MapPicker = dynamic(() => import("./components/MapPicker"), { 
@@ -31,6 +35,17 @@ const DEFAULT_AMENITIES = [
 ];
 
 export default function PostRentalPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center">Đang tải...</div>}>
+      <PostRentalContent />
+    </Suspense>
+  );
+}
+
+function PostRentalContent() {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+
   const [formData, setFormData] = useState({
     title: "",
     category: "Thuê trọ",
@@ -50,33 +65,77 @@ export default function PostRentalPage() {
     note: ""
   });
 
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as any)?.role === "admin";
+  const [imageLink, setImageLink] = useState("");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (editId) {
+      const fetchPost = async () => {
+        try {
+          const res = await fetch(`/api/posts/${editId}`);
+          if (res.ok) {
+            const post = await res.json();
+            setFormData(prev => ({
+              ...prev,
+              title: post.title || "",
+              category: post.category || "Thuê trọ",
+              address: post.address || "",
+              displayAddress: post.displayAddress || "",
+              areaInfo: post.areaInfo || "",
+              price: post.price?.toString() || "",
+              areaSize: post.areaSize?.toString() || "",
+              phone: post.phone || "",
+              lat: post.location?.lat || 10.762622,
+              lng: post.location?.lng || 106.660172,
+              bedrooms: post.bedrooms?.toString() || "1",
+              amenities: post.amenities || DEFAULT_AMENITIES,
+              images: post.images || [],
+              note: post.note || "",
+              availableDate: post.availableDate ? new Date(post.availableDate).toISOString().split('T')[0] : "2026-03-12",
+              searchCounter: 1
+            }));
+          }
+        } catch (error) {
+          console.error("Fetch post error:", error);
+        }
+      };
+      fetchPost();
+    }
+  }, [editId]);
+
   const handleSubmit = async () => {
     if (!formData.address || !formData.price || !formData.phone) {
-      alert("Vui lòng điền đầy đủ các thông tin bắt buộc (*)");
+      toast.error("Vui lòng điền đầy đủ các thông tin bắt buộc (*)");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/posts", {
-        method: "POST",
+      const url = editId ? `/api/posts/${editId}` : "/api/posts";
+      const method = editId ? "PUT" : "POST";
+      
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       if (response.ok) {
-        alert("Đăng bài thành công! Tin của bạn đang chờ quản trị viên phê duyệt.");
-        window.location.href = "/"; // Redirect to home
+        toast.success(editId ? "Cập nhật bài đăng thành công!" : "Đăng bài thành công! Tin của bạn đang chờ quản trị viên phê duyệt.");
+        setTimeout(() => {
+          window.location.href = editId ? "/manage" : "/"; 
+        }, 1500);
       } else {
         const error = await response.json();
-        alert(`Lỗi: ${error.error || "Không thể đăng bài"}`);
+        toast.error(`Lỗi: ${error.error || "Không thể xử lý bài đăng"}`);
       }
     } catch (error) {
-      alert("Đã xảy ra lỗi kết nối. Vui lòng thử lại sau.");
+      toast.error("Đã xảy ra lỗi kết nối. Vui lòng thử lại sau.");
     } finally {
       setIsSubmitting(false);
     }
@@ -154,15 +213,43 @@ export default function PostRentalPage() {
     }));
   };
 
+  const handleAddImageByLink = () => {
+    if (!imageLink.trim()) return;
+    
+    // Simple validation for URL
+    if (!imageLink.startsWith("http")) {
+      toast.error("Vui lòng nhập link hình ảnh hợp lệ (bắt đầu bằng http hoặc https)");
+      return;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, imageLink.trim()]
+    }));
+    setImageLink("");
+    toast.success("Đã thêm hình ảnh từ link");
+  };
+
   const handleLocationSelect = (lat: number, lng: number, address: string) => {
-    const mainAddress = address.split(",")[0] || "";
-    const area = address.split(",").slice(1).join(",").trim() || "";
+    const parts = address.split(",").map(p => p.trim());
+    const mainAddress = parts[0] || "";
+    
+    // Lọc bỏ mã bưu chính (chỉ chứa số) và "Việt Nam"
+    const filteredAreaParts = parts.slice(1).filter(part => {
+      const isPostcode = /^\d+$/.test(part);
+      const isCountry = part.toLowerCase() === "việt nam" || part.toLowerCase() === "vietnam";
+      return !isPostcode && !isCountry;
+    });
+
+    const area = filteredAreaParts.join(", ");
+    // Tạo địa chỉ sạch: Địa chỉ chính + khu vực đã lọc
+    const cleanAddress = mainAddress + (area ? ", " + area : "");
     
     setFormData(prev => ({
       ...prev,
       lat,
       lng,
-      address: address || prev.address,
+      address: cleanAddress,
       displayAddress: mainAddress || prev.displayAddress,
       areaInfo: area || prev.areaInfo,
       title: mainAddress ? `${mainAddress}` : prev.title,
@@ -206,7 +293,9 @@ export default function PostRentalPage() {
       <Header />
       
       <div className="max-w-[1240px] mx-auto w-full pt-10 px-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-8 border-b-2 border-gray-50 pb-4 inline-block tracking-tight">ĐĂNG TIN CHO THUÊ </h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-8 border-b-2 border-gray-50 pb-4 inline-block tracking-tight text-transform: uppercase">
+          {editId ? "CHỈNH SỬA TIN ĐĂNG" : "ĐĂNG TIN CHO THUÊ"}
+        </h1>
 
         <div className="space-y-12">
           {/* Main Form Content */}
@@ -249,6 +338,38 @@ export default function PostRentalPage() {
                 </div>
               </div>
               <p className="text-[11px] text-gray-400 font-medium">Tối đa 10MB mỗi file. Khuyên dùng ít nhất 3 ảnh thật của phòng.</p>
+
+              <div className="mt-4 p-5 bg-blue-50/50 border border-blue-100 rounded-3xl space-y-3">
+                <label className="text-[11px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
+                  <LinkIcon className="w-3.5 h-3.5" />
+                  Thêm ảnh bằng link (URL)
+                </label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="Dán link ảnh (hãy sao chép địa chỉ liên kết) từ Facebook, ...."
+                    className="flex-1 px-4 py-3 bg-white border border-blue-100 rounded-xl text-sm font-semibold text-gray-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all"
+                    value={imageLink}
+                    onChange={(e) => setImageLink(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddImageByLink();
+                      }
+                    }}
+                  />
+                  <button 
+                    type="button"
+                    onClick={handleAddImageByLink}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 whitespace-nowrap"
+                  >
+                    Thêm link
+                  </button>
+                </div>
+                <p className="text-[10px] font-bold text-blue-400 mt-1 italic">
+                  * Lưu ý: Hãy đảm bảo link hình ảnh là link trực tiếp và có thể truy cập công khai.
+                </p>
+              </div>
             </section>
 
             {/* 2. Địa chỉ & Bản đồ */}
@@ -529,7 +650,7 @@ export default function PostRentalPage() {
                     disabled={isSubmitting}
                     className={`w-full md:px-16 py-5 bg-gray-900 text-white rounded-[24px] font-black text-lg transition-all active:scale-[0.98] shadow-xl shadow-gray-200 flex items-center justify-center gap-3 group ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-black hover:shadow-2xl hover:shadow-gray-300'}`}
                   >
-                    {isSubmitting ? 'Đang xử lý...' : 'Xác nhận đăng bài'}
+                    {isSubmitting ? 'Đang xử lý...' : (editId ? 'Xác nhận chỉnh sửa' : 'Xác nhận đăng bài')}
                     {!isSubmitting && <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
                   </button>
                 </div>

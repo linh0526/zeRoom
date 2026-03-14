@@ -3,6 +3,8 @@
 import { Search, SlidersHorizontal, MapPin, Home, Wifi, Wind, ShieldCheck, Car, X, ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import { getRelativeTime } from "@/lib/formatDate";
+import { cleanAddress } from "@/lib/addressUtils";
 
 interface Room {
   id: number;
@@ -11,7 +13,9 @@ interface Room {
   address: string;
   images: string[];
   type?: string;
+  category?: string;
   bedrooms?: number;
+  areaSize?: number;
   readyDate?: string;
   phone?: string;
 }
@@ -27,11 +31,24 @@ interface SidebarProps {
 export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSelect, loading }: SidebarProps) {
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(15000000);
+  const [minArea, setMinArea] = useState(0);
+  const [category, setCategory] = useState("all");
+  const [showFilters, setShowFilters] = useState(true);
 
   const handlePriceChange = (min: number, max: number) => {
     setMinPrice(min);
     setMaxPrice(max);
-    onFilterChange({ minPrice: min, maxPrice: max });
+    onFilterChange({ minPrice: min, maxPrice: max, minArea, category });
+  };
+
+  const handleAreaChange = (val: number) => {
+    setMinArea(val);
+    onFilterChange({ minPrice, maxPrice, minArea: val, category });
+  };
+
+  const handleCategoryChange = (val: string) => {
+    setCategory(val);
+    onFilterChange({ minPrice, maxPrice, minArea, category: val });
   };
 
   return (
@@ -40,65 +57,115 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
         
         {!selectedRoom ? (
           <>
-            {/* Search Input */}
-            <div className="relative">
-              <Search className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
-              <input 
-                type="text" 
-                placeholder="Bạn muốn đến đâu?" 
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-none rounded-xl text-sm text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-              />
+            {/* Search and Toggle Filter */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
+                <input 
+                  type="text" 
+                  placeholder="Bạn muốn đến đâu?" 
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-none rounded-xl text-sm text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  onChange={(e) => onFilterChange({ minPrice, maxPrice, minArea, category, search: e.target.value })}
+                />
+              </div>
+              <button 
+                onClick={() => setShowFilters(!showFilters)}
+                className={`p-2.5 rounded-xl transition-all border ${showFilters ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' : 'bg-gray-50 text-gray-500 border-transparent hover:bg-gray-100'}`}
+              >
+                <SlidersHorizontal className="w-5 h-5" />
+              </button>
             </div>
 
-            {/* Price Filter */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                  Ngân sách của bạn
-                </h3>
-                <span className="text-xs text-blue-600 font-medium">
-                  Dưới {maxPrice.toLocaleString("vi-VN")}đ
-                </span>
-              </div>
-              <input 
-                type="range" 
-                min="0" 
-                max="15000000" 
-                step="500000"
-                value={maxPrice}
-                onChange={(e) => {
-                  handlePriceChange(minPrice, Number(e.target.value));
-                }}
-                className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-              />
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <p className="text-[10px] text-gray-400 mb-1 ml-1">Từ</p>
-                  <div className="relative">
-                    <input 
-                      type="number" 
-                      value={minPrice}
-                      onChange={(e) => handlePriceChange(Number(e.target.value), maxPrice)}
-                      className="w-full pl-3 pr-7 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 outline-none focus:border-blue-500 transition-all font-bold"
-                    />
-                    <span className="absolute right-2 top-2 text-[10px] text-gray-400 font-bold">đ</span>
+            {showFilters && (
+              <div className="space-y-6 animate-in slide-in-from-top-2 duration-300">
+                {/* Category Filter */}
+                <div className="space-y-3">
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Loại hình</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { id: "all", label: "Tất cả" },
+                      { id: "Căn hộ / Dịch vụ", label: "Căn hộ / Dịch vụ" },
+                      { id: "Thuê trọ", label: "Phòng trọ" }
+                    ].map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => handleCategoryChange(item.id)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${category === item.id ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' : 'bg-white text-gray-600 border-gray-100 hover:border-blue-200'}`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="flex-shrink-0 mt-4 text-gray-300">—</div>
-                <div className="flex-1">
-                  <p className="text-[10px] text-gray-400 mb-1 ml-1">Đến</p>
-                  <div className="relative">
-                    <input 
-                      type="number" 
-                      value={maxPrice}
-                      onChange={(e) => handlePriceChange(minPrice, Number(e.target.value))}
-                      className="w-full pl-3 pr-7 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 outline-none focus:border-blue-500 transition-all font-bold"
-                    />
-                    <span className="absolute right-2 top-2 text-[10px] text-gray-400 font-bold">đ</span>
+
+                {/* Price Filter */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Ngân sách</h3>
+                    <span className="text-xs text-blue-600 font-bold">
+                      Dưới {maxPrice.toLocaleString("vi-VN")}đ
+                    </span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="15000000" 
+                    step="500000"
+                    value={maxPrice}
+                    onChange={(e) => handlePriceChange(minPrice, Number(e.target.value))}
+                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <input 
+                          type="number" 
+                          value={minPrice}
+                          onChange={(e) => handlePriceChange(Number(e.target.value), maxPrice)}
+                          className="w-full pl-3 pr-7 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 outline-none focus:border-blue-500 transition-all font-bold"
+                        />
+                        <span className="absolute right-2 top-2 text-[10px] text-gray-400 font-bold">đ</span>
+                      </div>
+                    </div>
+                    <div className="text-gray-300">—</div>
+                    <div className="flex-1">
+                      <div className="relative">
+                        <input 
+                          type="number" 
+                          value={maxPrice}
+                          onChange={(e) => handlePriceChange(minPrice, Number(e.target.value))}
+                          className="w-full pl-3 pr-7 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 outline-none focus:border-blue-500 transition-all font-bold"
+                        />
+                        <span className="absolute right-2 top-2 text-[10px] text-gray-400 font-bold">đ</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Area Filter */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Diện tích</h3>
+                    <span className="text-xs text-blue-600 font-bold">
+                      Từ {minArea} m²
+                    </span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    step="5"
+                    value={minArea}
+                    onChange={(e) => handleAreaChange(Number(e.target.value))}
+                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                  <div className="flex justify-between text-[10px] text-gray-400 font-bold">
+                    <span>0 m²</span>
+                    <span>100+ m²</span>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
 
           </>
@@ -149,6 +216,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
             <div className="bg-blue-50 p-4 rounded-2xl mt-4 border border-blue-100/50">
               <span className="text-blue-600 text-xs font-semibold uppercase block mb-1">Liên hệ</span>
               <span className="font-bold text-blue-800 text-lg tracking-wide">{selectedRoom.phone || "0353044770"}</span>
+              <p className="text-[9px] text-blue-500/70 font-medium mt-1 italic leading-tight">"Nhắn với chủ trọ là bạn thấy tin từ zeRoom nhé! 💙"</p>
             </div>
           </div>
         )}
@@ -212,7 +280,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                       <h4 className="text-sm font-bold text-gray-800 line-clamp-2 leading-tight group-hover:text-blue-600">{room.title}</h4>
                       <p className="text-[10px] text-gray-400 line-clamp-1 flex items-center gap-0.5">
                         <MapPin className="w-2.5 h-2.5 shrink-0 text-blue-500/70" />
-                        {room.address?.split(",")[0] || "Chưa rõ địa chỉ"}
+                        {cleanAddress(room.address).split(",")[0]}
                       </p>
                     </div>
                     <div className="flex items-end justify-between mt-auto">
@@ -221,7 +289,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                           {room.price >= 1000000 ? `${(room.price / 1000000).toLocaleString("vi-VN")} Tr₫` : `${room.price.toLocaleString("vi-VN")}đ`}
                         </p>
                         <p className="text-[10px] text-gray-400 font-medium italic">
-                          {new Date(room.createdAt).toLocaleDateString("vi-VN")}
+                          {getRelativeTime(room.createdAt)}
                         </p>
                       </div>
                       <Link 

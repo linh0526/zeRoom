@@ -11,10 +11,12 @@ import {
 } from "lucide-react";
 import { notFound } from "next/navigation";
 import MiniMapClient from "@/components/MiniMapClient";
+import ViewTracker from "@/components/ViewTracker";
 import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
 import mongoose from "mongoose";
 import { cache } from "react";
+import { cleanAddress } from "@/lib/addressUtils";
 
 export const revalidate = 3600; // Revalidate every 1 hour
 
@@ -30,6 +32,13 @@ interface PageProps {
 
 export default async function RoomDetailPage({ params }: PageProps) {
   const { id } = await params;
+  
+  return (
+    <RoomDetailContent id={id} />
+  );
+}
+
+async function RoomDetailContent({ id }: { id: string }) {
 
   // Validate ID
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -50,6 +59,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-gray-50 pb-20">
       <Header />
+      <ViewTracker postId={id} />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-12">
         
@@ -64,7 +74,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
               </h1>
               <p className="flex items-center gap-2 text-gray-500 font-medium">
                 <MapPin className="w-5 h-5 text-blue-500" />
-                {room.address}
+                {cleanAddress(room.address)}
               </p>
             </div>
             
@@ -126,8 +136,9 @@ export default async function RoomDetailPage({ params }: PageProps) {
                 <Phone className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-[10px] text-blue-600 font-black uppercase tracking-[0.1em] mb-0.5">Số điện thoại</p>
+                <p className="text-[10px] text-blue-600 font-black uppercase tracking-[0.1em] mb-0.5">Số điện thoại / Zalo</p>
                 <p className="text-base font-black text-blue-900 tracking-wide">{room.phone}</p>
+                <p className="text-[10px] text-blue-400 font-medium mt-0.5 italic">"Đừng quên bảo bạn tìm thấy tin từ zeRoom nhé! ✨"</p>
               </div>
             </div>
           </div>

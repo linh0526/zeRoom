@@ -17,6 +17,7 @@ import {
   Eye
 } from "lucide-react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function ManagePostsPage() {
   const { data: session, status } = useSession();
@@ -43,6 +44,46 @@ export default function ManagePostsPage() {
       console.error("Error fetching posts:", error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleRenew(postId: string) {
+    try {
+      const res = await fetch("/api/user/posts/renew", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId }),
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        fetchUserPosts();
+        toast.success("Gia hạn thành công thêm 60 ngày!");
+      } else {
+        toast.error(data.error || "Không thể gia hạn bài đăng");
+      }
+    } catch (error) {
+      toast.error("Lỗi kết nối khi gia hạn");
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Bạn có chắc chắn muốn xóa bài đăng này?")) return;
+    try {
+      const res = await fetch("/api/admin/posts", { // Reuse admin delete API
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        setPosts(posts.filter(p => p._id !== id));
+        toast.success("Đã xóa bài đăng thành công");
+      } else {
+        toast.error("Lỗi khi xóa bài đăng");
+      }
+    } catch (error) {
+      toast.error("Lỗi kết nối khi xóa");
     }
   }
 
@@ -82,10 +123,6 @@ export default function ManagePostsPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-50 text-gray-600 rounded-2xl font-bold text-sm hover:bg-gray-100 transition-all border border-gray-100">
-              <Filter className="w-4 h-4" />
-              Bộ lọc
-            </button>
           </div>
         </div>
 
@@ -144,28 +181,49 @@ export default function ManagePostsPage() {
                       </td>
                       <td className="px-6 py-6 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${post.status === 'active' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]'}`}></div>
-                          <span className={`text-[11px] font-black uppercase tracking-widest ${post.status === 'active' ? 'text-green-600' : 'text-orange-600'}`}>
-                            {post.status === 'active' ? 'Đã duyệt' : 'Chờ duyệt'}
+                           <div className={`w-2 h-2 rounded-full ${
+                            post.status === 'approved' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 
+                            post.status === 'pending' ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]' : 
+                            'bg-red-500'
+                          }`}></div>
+                          <span className={`text-[11px] font-black uppercase tracking-widest ${
+                            post.status === 'approved' ? 'text-green-600' : 
+                            post.status === 'pending' ? 'text-orange-600' : 
+                            'text-red-600'
+                          }`}>
+                            {post.status === 'approved' ? 'Đã duyệt' : 
+                             post.status === 'pending' ? 'Chờ duyệt' : 
+                             post.status === 'rejected' ? 'Từ chối' : 'Hết hạn'}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-6">
-                        <p className="text-xs font-bold text-gray-700 mb-0.5">12/04/2026</p>
-                        <button className="flex items-center gap-1 text-blue-500 hover:text-blue-700 transition-colors">
+                      <td className="px-6 py-6 font-medium">
+                        <p className={`text-xs font-bold mb-0.5 ${new Date(post.expiresAt) < new Date() ? 'text-red-500' : 'text-gray-700'}`}>
+                           {post.expiresAt ? new Date(post.expiresAt).toLocaleDateString("vi-VN") : "N/A"}
+                        </p>
+                        <button 
+                          onClick={() => handleRenew(post._id)}
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
+                        >
                           <RefreshCw className="w-3 h-3" />
-                          <span className="text-[10px] font-black uppercase">Gia hạn</span>
+                          <span className="text-[10px] font-black uppercase tracking-tighter">Gia hạn (+60 ngày)</span>
                         </button>
                       </td>
                       <td className="px-6 py-6 text-center">
                         <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm">
+                          <button className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm" title="Xem">
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition-all shadow-sm">
+                          <Link 
+                            href={`/post?edit=${post._id}`}
+                            className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition-all shadow-sm flex items-center justify-center" title="Sửa"
+                          >
                             <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all shadow-sm">
+                          </Link>
+                          <button 
+                            onClick={() => handleDelete(post._id)}
+                            className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all shadow-sm" title="Xóa"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>

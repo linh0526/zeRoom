@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
+import Settings from "@/models/Settings";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
@@ -23,11 +24,20 @@ export async function POST(req: Request) {
 
     const { lat, lng, ...rest } = data;
 
+    // Lấy cấu hình duyệt bài
+    const approvalSetting = await Settings.findOne({ key: "requireApprovalNew" });
+    const requireApproval = approvalSetting ? approvalSetting.value : true;
+
+    // Mặc định hết hạn sau 60 ngày
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 60);
+
     const newPost = await Post.create({
       ...rest,
       location: { lat, lng },
-      status: "pending", // Always pending for admin review
+      status: requireApproval ? "pending" : "approved",
       user: session.user.id,
+      expiresAt: expiryDate,
     });
 
     return NextResponse.json({ success: true, post: newPost }, { status: 201 });

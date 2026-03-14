@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, User, Bell, Menu, PhoneCall, X, Plus, LogOut, LayoutDashboard } from "lucide-react";
+import { MapPin, User, Bell, Menu, PhoneCall, X, Plus, LogOut, LayoutDashboard, FileText } from "lucide-react";
 import Link from "next/link";
 import { useSession, signOut, signIn } from "next-auth/react";
 import { useState } from "react";
@@ -61,24 +61,37 @@ export default function Header() {
           <div className="relative">
             <button 
               onClick={() => setShowMenu(!showMenu)}
-              className="flex items-center gap-3 pl-2 pr-4 py-1.5 bg-gray-50 border border-gray-100 rounded-[20px] hover:bg-gray-100 transition-all group"
+              className="flex items-center gap-2 px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-[20px] hover:bg-gray-100 transition-all group shadow-sm active:scale-95"
             >
-              <div className="w-9 h-9 rounded-xl overflow-hidden border-2 border-white shadow-sm shrink-0">
-               <img src={session.user?.image || `https://ui-avatars.com/api/?name=${session.user?.name}&background=6366f1&color=fff`} alt="User" />
-              </div>
-              <div className="flex flex-col items-start">
-                <span className="text-[10px] font-black text-gray-900 leading-none">{session.user?.name}</span>
-                <span className="text-[9px] font-bold text-blue-500 uppercase mt-0.5 tracking-tighter">{session.user?.role || 'User'}</span>
-              </div>
+              <User className="w-4 h-4 text-blue-600" />
+              <span className="text-[11px] font-black text-gray-900 uppercase tracking-tight">{session.user?.name}</span>
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                {session.user?.role === 'admin' && (
+                  <>
+                    <Link 
+                      href="/admin"
+                      onClick={() => setShowMenu(false)}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 rounded-xl transition-colors text-xs font-bold text-blue-600 group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <LayoutDashboard className="w-4 h-4" />
+                      </div>
+                      <span>Trang quản trị</span>
+                    </Link>
+                    <div className="h-px bg-gray-50 my-1 mx-2" />
+                  </>
+                )}
+
                 <button 
                   onClick={() => signOut()}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 rounded-xl transition-colors text-xs font-bold text-red-600"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 rounded-xl transition-colors text-xs font-bold text-red-600 group"
                 >
-                  <LogOut className="w-4 h-4" />
+                   <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <LogOut className="w-4 h-4" />
+                  </div>
                   Đăng xuất
                 </button>
               </div>

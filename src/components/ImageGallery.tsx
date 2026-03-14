@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Share2, Heart, X, Home } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Home } from "lucide-react";
 
 interface ImageGalleryProps {
   roomId: string;
@@ -84,20 +84,7 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           
-          <div className="absolute top-4 right-4 flex gap-2">
-            <button 
-              className="p-3 bg-white/90 backdrop-blur-md rounded-full shadow-lg hover:bg-white transition-colors"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Share2 className="w-5 h-5 text-gray-700" />
-            </button>
-            <button 
-              className="p-3 bg-white/90 backdrop-blur-md rounded-full shadow-lg hover:bg-red-50 group transition-colors"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Heart className="w-5 h-5 text-gray-700 group-hover:text-red-500 transition-colors" />
-            </button>
-          </div>
+
 
           <div className="absolute bottom-6 left-6 flex gap-2">
             <span className="px-4 py-2 bg-black/60 backdrop-blur-md text-white text-xs font-bold rounded-full border border-white/20">

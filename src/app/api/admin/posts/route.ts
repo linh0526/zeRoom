@@ -17,11 +17,24 @@ export async function GET() {
 export async function PUT(req: Request) {
   try {
     await dbConnect();
-    const { id, status, rejectionReason } = await req.json();
+    const { id, status, rejectionReason, expiresAt } = await req.json();
     
+    const updateData: any = { status, rejectionReason };
+    if (expiresAt) updateData.expiresAt = new Date(expiresAt);
+    
+    // Nếu duyệt bài và chưa có ngày hết hạn, mới tự động set
+    if (status === "approved" && !expiresAt) {
+      const post = await Post.findById(id);
+      if (post && !post.expiresAt) {
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 60);
+        updateData.expiresAt = expiryDate;
+      }
+    }
+
     const updatedPost = await Post.findByIdAndUpdate(
       id,
-      { status, rejectionReason },
+      updateData,
       { new: true }
     );
 
@@ -30,6 +43,24 @@ export async function PUT(req: Request) {
     }
 
     return NextResponse.json(updatedPost);
+  } catch (error) {
+    return NextResponse.json({ error: "Lỗi Server Internal" }, { status: 500 });
+  }
+}
+
+// Add DELETE to remove post
+export async function DELETE(req: Request) {
+  try {
+    await dbConnect();
+    const { id } = await req.json();
+    
+    const deletedPost = await Post.findByIdAndDelete(id);
+
+    if (!deletedPost) {
+      return NextResponse.json({ error: "Không tìm thấy tin đăng" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: "Lỗi Server Internal" }, { status: 500 });
   }

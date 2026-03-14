@@ -26,11 +26,49 @@ export async function GET() {
       User.countDocuments({ createdAt: { $gte: last24h } })
     ]);
 
-    // Simple "Hot Areas" logic
-    const hotAreas = await Post.aggregate([
+    // Logic "Khu vực Hot" theo tỉnh thành (đã lọc Việt Nam và mã bưu chính)
+    const hotAreasRaw = await Post.aggregate([
       { $match: { status: "approved" } },
-      { $group: { _id: "$address", count: { $sum: 1 }, views: { $sum: { $ifNull: ["$views", 0] } } } },
-      { $sort: { count: -1 } },
+      { 
+        $project: { 
+          address: 1, 
+          views: { $ifNull: ["$views", 0] },
+          // Chuyển địa chỉ thành mảng các phần và lọc bỏ rác
+          parts: { $split: ["$address", ", "] }
+        } 
+      },
+      {
+        $project: {
+          views: 1,
+          cleanParts: {
+            $filter: {
+              input: "$parts",
+              as: "part",
+              cond: {
+                $and: [
+                  { $ne: [{ $toLower: "$$part" }, "việt nam"] },
+                  { $ne: [{ $toLower: "$$part" }, "vietnam"] },
+                  { $not: { $regexMatch: { input: "$$part", regex: "^\\d+$" } } }
+                ]
+              }
+            }
+          }
+        }
+      },
+      { 
+        $project: { 
+          views: 1,
+          city: { $arrayElemAt: ["$cleanParts", -1] } 
+        } 
+      },
+      { 
+        $group: { 
+          _id: "$city", 
+          count: { $sum: 1 }, 
+          views: { $sum: "$views" } 
+        } 
+      },
+      { $sort: { views: -1, count: -1 } },
       { $limit: 4 }
     ]);
 
@@ -43,8 +81,8 @@ export async function GET() {
         newPosts24h,
         newUsers24h
       },
-      hotAreas: hotAreas.map(a => ({
-        name: a._id.split(",").slice(0, 2).join(",").trim(),
+      hotAreas: hotAreasRaw.map(a => ({
+        name: a._id || "Toàn quốc",
         count: a.count,
         views: (a.views > 1000 ? (a.views/1000).toFixed(1) + "k" : a.views || 0)
       }))

@@ -56,6 +56,16 @@ export const authOptions: any = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account }: any) {
+      if (account?.provider === "google") {
+        await dbConnect();
+        const dbUser = await User.findOne({ email: user.email });
+        if (dbUser && !dbUser.role) {
+          await User.findByIdAndUpdate(dbUser._id, { role: "user" });
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }: any) {
       if (user) {
         token.id = user.id;
@@ -69,6 +79,13 @@ export const authOptions: any = {
         session.user.role = token.role || "user";
       }
       return session;
+    },
+  },
+  events: {
+    async createUser({ user }: any) {
+      await dbConnect();
+      // Đảm bảo role được lưu vào DB khi user được tạo qua Google/Adapter
+      await User.findByIdAndUpdate(user.id, { role: "user" });
     },
   },
   pages: {
