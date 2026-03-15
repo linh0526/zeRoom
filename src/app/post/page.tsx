@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, redirect } from "next/navigation";
 import Header from "@/components/Header";
 import { 
   Upload, 
@@ -65,8 +65,23 @@ function PostRentalContent() {
     note: ""
   });
 
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const isAdmin = (session?.user as any)?.role === "admin";
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      redirect("/auth/signin?callbackUrl=/post");
+    }
+  }, [status]);
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center font-sans">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Đang kiểm tra quyền truy cập...</p>
+      </div>
+    );
+  }
   const [imageLink, setImageLink] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);

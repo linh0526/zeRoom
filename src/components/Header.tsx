@@ -12,13 +12,31 @@ export default function Header() {
   return (
     <header className="h-20 border-b border-gray-100 bg-white/80 backdrop-blur-md flex items-center justify-between px-8 z-[1001] sticky top-0">
       <div className="flex items-center gap-8">
-        <Link href="/" className="flex items-center gap-2 transition-transform hover:scale-105">
-          <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <span className="text-white font-bold text-2xl italic">z</span>
+        <Link href="/" className="flex items-center gap-3 group transition-all">
+          <div className="flex items-center gap-2.5">
+            {/* Icon Container */}
+            <div className="relative">
+              <div className="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 rotate-[-4deg] group-hover:rotate-0 transition-all duration-300">
+                <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+              </div>
+              {/* Decorative dot */}
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white shadow-sm" />
+            </div>
+            
+            {/* Text Container */}
+            <div className="flex flex-col -space-y-1.5 hidden sm:flex">
+              <h1 className="text-2xl font-black tracking-tighter text-gray-900 flex items-baseline">
+                ze<span className="text-blue-600">Room</span>
+              </h1>
+              <div className="flex items-center gap-1.5">
+                <div className="h-[2px] w-4 bg-blue-600/30 rounded-full" />
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Smart Living</span>
+              </div>
+            </div>
           </div>
-          <h1 className="text-2xl font-black tracking-tighter text-gray-900 hidden sm:block">
-            ze<span className="text-blue-600">Room</span>
-          </h1>
         </Link>
       </div>
 
