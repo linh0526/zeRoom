@@ -74,6 +74,7 @@ export async function GET(req: Request) {
 
     let query = Post.find({ status: "approved" })
       .select(projection)
+      .populate("user", "isVerified")
       .sort({ createdAt: -1 })
       .lean();
     

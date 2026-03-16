@@ -277,7 +277,12 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                   </div>
                   <div className="flex flex-col justify-between py-0.5 flex-1 min-w-0">
                     <div className="space-y-1">
-                      <h4 className="text-sm font-bold text-gray-800 line-clamp-2 leading-tight group-hover:text-blue-600">{room.title}</h4>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <h4 className="text-sm font-bold text-gray-800 line-clamp-2 leading-tight group-hover:text-blue-600 flex-1">{room.title}</h4>
+                        {room.user?.isVerified && (
+                          <ShieldCheck className="w-4 h-4 text-blue-600 fill-blue-50 shrink-0" />
+                        )}
+                      </div>
                       <p className="text-[10px] text-gray-400 line-clamp-1 flex items-center gap-0.5">
                         <MapPin className="w-2.5 h-2.5 shrink-0 text-blue-500/70" />
                         {cleanAddress(room.address).split(",")[0]}

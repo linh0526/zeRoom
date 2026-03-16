@@ -28,7 +28,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { getRelativeTime } from "@/lib/formatDate";
 
-type PostStatus = "pending" | "approved" | "rejected" | "expired";
+type PostStatus = "pending" | "approved" | "rejected" | "expired" | "hidden";
 
 export default function AdminPosts() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -158,7 +158,9 @@ export default function AdminPosts() {
       case "approved":
         return <span className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full text-[10px] font-black uppercase tracking-wider border border-green-100/50"><CheckCircle2 className="w-3 h-3" /> Đang hiển thị</span>;
       case "rejected":
-        return <span className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 rounded-full text-[10px] font-black uppercase tracking-wider border border-red-100/50"><XCircle className="w-3 h-3" /> Bị ẩn</span>;
+        return <span className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 rounded-full text-[10px] font-black uppercase tracking-wider border border-red-100/50"><XCircle className="w-3 h-3" /> Bị từ chối</span>;
+      case "hidden":
+        return <span className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-[10px] font-black uppercase tracking-wider border border-gray-200/50"><Eye className="w-3 h-3" /> Đang ẩn (User)</span>;
       case "expired":
         return <span className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-[10px] font-black uppercase tracking-wider border border-gray-200/50">Hết hạn</span>;
     }
@@ -202,7 +204,7 @@ export default function AdminPosts() {
 
       {/* Stats Quick View */}
       <div className="flex gap-4 overflow-x-auto pb-2">
-        {["all", "pending", "approved", "rejected", "expired"].map((s) => (
+        {["all", "pending", "approved", "rejected", "hidden", "expired"].map((s) => (
           <button 
             key={s}
             onClick={() => setFilter(s as any)}
@@ -212,7 +214,11 @@ export default function AdminPosts() {
                 : "bg-white text-gray-400 hover:text-gray-900 shadow-sm border border-gray-50"
             }`}
           >
-            {s === "all" ? "Tất cả" : s === "pending" ? `Hàng đợi (${posts.filter(p => p.status === 'pending').length})` : s === "approved" ? "Hiển thị" : s === "rejected" ? "Từ chối" : "Hết hạn"}
+            {s === "all" ? "Tất cả" : 
+             s === "pending" ? `Hàng đợi (${posts.filter(p => p.status === 'pending').length})` : 
+             s === "approved" ? "Hiển thị" : 
+             s === "rejected" ? "Từ chối" : 
+             s === "hidden" ? "Đang ẩn" : "Hết hạn"}
           </button>
         ))}
       </div>
@@ -268,7 +274,15 @@ export default function AdminPosts() {
                   </div>
                 </td>
                 <td className="px-8 py-6">
-                  <span className="text-sm font-bold text-gray-700">{post.phone}</span>
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-gray-900">{post.user?.name || "Member"}</span>
+                      {post.user?.isVerified && (
+                        <ShieldCheck className="w-3.5 h-3.5 text-blue-600 fill-blue-50" />
+                      )}
+                    </div>
+                    <span className="text-[11px] font-semibold text-gray-500">{post.phone}</span>
+                  </div>
                 </td>
                 <td className="px-8 py-6">
                   <div>
@@ -434,7 +448,8 @@ export default function AdminPosts() {
                 >
                   <option value="pending">Chờ duyệt</option>
                   <option value="approved">Duyệt hiển thị</option>
-                  <option value="rejected">Từ chối (Ẩn)</option>
+                  <option value="rejected">Từ chối (Vi phạm)</option>
+                  <option value="hidden">Ẩn (Tạm thời)</option>
                   <option value="expired">Hết hạn</option>
                 </select>
               </div>
@@ -548,7 +563,7 @@ export default function AdminPosts() {
               </div>
               <div>
                 <h3 className="text-lg font-black text-gray-900 uppercase">Từ chối bài đăng</h3>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Vui lòng nêu rõ lý do bị ẩn</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Vui lòng nêu rõ lý do bị từ chối</p>
               </div>
             </div>
 

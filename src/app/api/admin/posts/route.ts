@@ -6,7 +6,9 @@ export async function GET() {
   try {
     await dbConnect();
     // Admin gets ALL posts sorted by latest
-    const posts = await Post.find({}).sort({ createdAt: -1 });
+    const posts = await Post.find({})
+      .populate("user", "name isVerified")
+      .sort({ createdAt: -1 });
     return NextResponse.json(posts);
   } catch (error) {
     return NextResponse.json({ error: "Lỗi kết nối CSDL" }, { status: 500 });

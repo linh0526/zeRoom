@@ -7,7 +7,8 @@ import {
   CheckCircle2, 
   Home as HomeIcon, 
   Bed, 
-  Maximize2
+  Maximize2,
+  ShieldCheck
 } from "lucide-react";
 import { notFound } from "next/navigation";
 import MiniMapClient from "@/components/MiniMapClient";
@@ -22,8 +23,11 @@ export const revalidate = 3600; // Revalidate every 1 hour
 
 const getRoom = cache(async (id: string) => {
   await dbConnect();
-  // Exclude images for faster initial load
-  return await Post.findById(id).select("-images").lean();
+  // Exclude images for faster initial load, populate user verification info
+  return await Post.findById(id)
+    .select("-images")
+    .populate("user", "name isVerified status")
+    .lean();
 });
 
 interface PageProps {
@@ -69,9 +73,19 @@ async function RoomDetailContent({ id }: { id: string }) {
           {/* Title Header */}
           <div className="flex flex-col md:flex-row md:justify-between items-start md:items-center gap-6 mb-10">
             <div>
-              <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2 tracking-tight">
-                {room.title}
-              </h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
+                  {room.title}
+                </h1>
+                {room.user?.isVerified && (
+                  <div className="group relative">
+                    <ShieldCheck className="w-8 h-8 text-blue-600 fill-blue-50" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl">
+                      Chính chủ xác minh
+                    </div>
+                  </div>
+                )}
+              </div>
               <p className="flex items-center gap-2 text-gray-500 font-medium">
                 <MapPin className="w-5 h-5 text-blue-500" />
                 {cleanAddress(room.address)}

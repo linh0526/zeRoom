@@ -20,7 +20,7 @@ const PostSchema = new Schema(
     },
     status: { 
       type: String, 
-      enum: ["pending", "approved", "rejected", "expired"], 
+      enum: ["pending", "approved", "rejected", "expired", "hidden"], 
       default: "pending" 
     },
     rejectionReason: { type: String }, // For Admin to specify why

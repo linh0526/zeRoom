@@ -14,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  Eye
+  Eye,
+  EyeOff
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -65,6 +66,27 @@ export default function ManagePostsPage() {
       }
     } catch (error) {
       toast.error("Lỗi kết nối khi gia hạn");
+    }
+  }
+
+  async function handleToggleVisibility(postId: string) {
+    try {
+      const res = await fetch("/api/user/posts/visibility", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId }),
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        fetchUserPosts();
+        toast.success(data.status === "hidden" ? "Đã ẩn bài đăng" : "Đã hiện bài đăng");
+      } else {
+        toast.error(data.error || "Không thể thay đổi trạng thái bài đăng");
+      }
+    } catch (error) {
+      toast.error("Lỗi kết nối khi thay đổi trạng thái");
     }
   }
 
@@ -181,19 +203,22 @@ export default function ManagePostsPage() {
                       </td>
                       <td className="px-6 py-6 text-center">
                         <div className="flex items-center justify-center gap-2">
-                           <div className={`w-2 h-2 rounded-full ${
+                          <div className={`w-2 h-2 rounded-full ${
                             post.status === 'approved' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 
                             post.status === 'pending' ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]' : 
+                            post.status === 'hidden' ? 'bg-gray-400' :
                             'bg-red-500'
-                          }`}></div>
+                          }`} />
                           <span className={`text-[11px] font-black uppercase tracking-widest ${
                             post.status === 'approved' ? 'text-green-600' : 
                             post.status === 'pending' ? 'text-orange-600' : 
+                            post.status === 'hidden' ? 'text-gray-500' :
                             'text-red-600'
                           }`}>
                             {post.status === 'approved' ? 'Đã duyệt' : 
                              post.status === 'pending' ? 'Chờ duyệt' : 
-                             post.status === 'rejected' ? 'Bị ẩn' : 'Hết hạn'}
+                             post.status === 'rejected' ? 'Bị từ chối' : 
+                             post.status === 'hidden' ? 'Đang ẩn' : 'Hết hạn'}
                           </span>
                         </div>
                         {post.status === 'rejected' && post.rejectionReason && (
@@ -217,22 +242,64 @@ export default function ManagePostsPage() {
                         </button>
                       </td>
                       <td className="px-6 py-6 text-center">
-                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm" title="Xem">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <Link 
-                            href={`/post?edit=${post._id}`}
-                            className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition-all shadow-sm flex items-center justify-center" title="Sửa"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </Link>
-                          <button 
-                            onClick={() => handleDelete(post._id)}
-                            className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all shadow-sm" title="Xóa"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                          {/* View Button */}
+                          <div className="relative group/tooltip">
+                            <Link 
+                              href={`/room/${post._id}`}
+                              className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm flex items-center justify-center"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Link>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] font-bold rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                              Xem chi tiết
+                            </span>
+                          </div>
+
+                          {/* Visibility Toggle Button */}
+                          {(post.status === 'approved' || post.status === 'hidden') && (
+                            <div className="relative group/tooltip">
+                              <button 
+                                onClick={() => handleToggleVisibility(post._id)}
+                                className={`p-2.5 border rounded-xl transition-all shadow-sm flex items-center justify-center ${
+                                  post.status === 'hidden' 
+                                    ? 'bg-green-50 border-green-100 text-green-600 hover:bg-green-100' 
+                                    : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'
+                                }`}
+                              >
+                                {post.status === 'hidden' ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                              </button>
+                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] font-bold rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                {post.status === 'hidden' ? 'Hiện bài đăng' : 'Tạm ẩn bài đăng'}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Edit Button */}
+                          <div className="relative group/tooltip">
+                            <Link 
+                              href={`/post?edit=${post._id}`}
+                              className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition-all shadow-sm flex items-center justify-center"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </Link>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] font-bold rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                              Chỉnh sửa
+                            </span>
+                          </div>
+
+                          {/* Delete Button */}
+                          <div className="relative group/tooltip">
+                            <button 
+                              onClick={() => handleDelete(post._id)}
+                              className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all shadow-sm flex items-center justify-center"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] font-bold rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                              Xóa bài
+                            </span>
+                          </div>
                         </div>
                       </td>
                     </tr>
