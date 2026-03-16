@@ -78,7 +78,7 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
           onClick={() => setIsModalOpen(true)}
         >
           <img 
-            src={images[currentIndex]} 
+            src={images[currentIndex] || undefined} 
             alt={`${title} - image ${currentIndex + 1}`} 
             fetchPriority="high"
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -125,7 +125,7 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
                   currentIndex === idx ? "ring-2 ring-blue-600 ring-offset-2 scale-100 opacity-100" : "opacity-60 hover:opacity-100 scale-95 hover:scale-100"
                 }`}
               >
-                <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                <img src={img || undefined} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
@@ -150,7 +150,7 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
           </button>
 
           <img 
-            src={images[currentIndex]} 
+            src={images[currentIndex] || undefined} 
             alt={`${title} - image ${currentIndex + 1}`} 
             className="max-w-[90vw] max-h-[90vh] object-contain select-none"
           />

@@ -53,14 +53,21 @@ export async function PUT(
 
     // Xác định trạng thái mới
     let newStatus = post.status;
+    let clearRejection = false;
+    
     if (session.user.role !== "admin" && requireApproval) {
       newStatus = "pending";
+      clearRejection = true;
     }
 
     // Update fields
     const updatedPost = await Post.findByIdAndUpdate(
       id,
-      { ...data, status: newStatus },
+      { 
+        ...data, 
+        status: newStatus,
+        ...(clearRejection ? { rejectionReason: "" } : {})
+      },
       { new: true }
     );
 

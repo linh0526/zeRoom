@@ -6,8 +6,8 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
-import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import { useEffect, useRef, useState } from "react";
+import { getRelativeTime } from "@/lib/formatDate";
 
 interface Room {
   _id: string;
@@ -22,6 +22,7 @@ interface Room {
   };
   address: string;
   images: string[];
+  createdAt: string | Date;
 }
 
 interface MapProps {
@@ -84,7 +85,7 @@ const RoomMarker = ({ room, isSelected, onRoomSelect }: { room: any, isSelected:
         <div className="flex flex-col w-[200px] bg-white rounded-xl overflow-hidden shadow-2xl">
           <div className="w-full h-28 relative">
             <img 
-              src={room.images?.[0] || ''} 
+              src={room.images?.[0] || undefined} 
               alt={room.title} 
               className={`w-full h-full object-cover ${!room.images?.[0] ? 'bg-gray-100' : ''}`}
             />
@@ -100,8 +101,8 @@ const RoomMarker = ({ room, isSelected, onRoomSelect }: { room: any, isSelected:
               <p className="text-blue-600 font-bold text-sm">
                 {room.price >= 1000000 ? `${(room.price / 1000000).toLocaleString("vi-VN")} Tr₫` : `${room.price.toLocaleString("vi-VN")}đ`}
               </p>
-              <p className="text-[10px] text-gray-400 font-medium">
-                Vừa xong
+              <p className="text-[10px] text-gray-500 font-bold italic">
+                {getRelativeTime(room.createdAt)}
               </p>
             </div>
           </div>

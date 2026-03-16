@@ -132,11 +132,11 @@ export default function ManagePostsPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-50 bg-gray-50/50">
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Tiêu đề</th>
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Loại dịch vụ</th>
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-center">Trạng thái</th>
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Ngày hết hạn</th>
-                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-center">Thao tác</th>
+                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Tiêu đề</th>
+                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Loại dịch vụ</th>
+                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 text-center">Trạng thái</th>
+                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">Ngày hết hạn</th>
+                  <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 text-center">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -193,12 +193,19 @@ export default function ManagePostsPage() {
                           }`}>
                             {post.status === 'approved' ? 'Đã duyệt' : 
                              post.status === 'pending' ? 'Chờ duyệt' : 
-                             post.status === 'rejected' ? 'Từ chối' : 'Hết hạn'}
+                             post.status === 'rejected' ? 'Bị ẩn' : 'Hết hạn'}
                           </span>
                         </div>
+                        {post.status === 'rejected' && post.rejectionReason && (
+                          <div className="mt-2 p-2 bg-red-50 rounded-lg border border-red-100 animate-in fade-in slide-in-from-top-1 duration-300">
+                             <p className="text-[10px] text-red-600 font-bold leading-tight text-left italic">
+                                Lý do: {post.rejectionReason}
+                             </p>
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-6 font-medium">
-                        <p className={`text-xs font-bold mb-0.5 ${new Date(post.expiresAt) < new Date() ? 'text-red-500' : 'text-gray-700'}`}>
+                        <p className={`text-xs font-bold mb-0.5 ${new Date(post.expiresAt) < new Date() ? 'text-red-500' : 'text-gray-900'}`}>
                            {post.expiresAt ? new Date(post.expiresAt).toLocaleDateString("vi-VN") : "N/A"}
                         </p>
                         <button 

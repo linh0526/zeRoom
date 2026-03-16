@@ -42,6 +42,9 @@ export default function AdminPosts() {
     requireApprovalEdit: true
   });
   const [isConfigSaving, setIsConfigSaving] = useState(false);
+  const [rejectingPostId, setRejectingPostId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [isRejecting, setIsRejecting] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -92,19 +95,23 @@ export default function AdminPosts() {
     }
   };
 
-  const handleUpdateStatus = async (id: string, status: PostStatus) => {
+  const handleUpdateStatus = async (id: string, status: PostStatus, reason?: string) => {
     try {
       const res = await fetch("/api/admin/posts", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status }),
+        body: JSON.stringify({ id, status, rejectionReason: reason }),
       });
       if (res.ok) {
         fetchPosts(); // Refresh list
-        toast.success("Đã cập nhật trạng thái bài đăng");
+        setRejectingPostId(null);
+        setRejectionReason("");
+        toast.success(status === "approved" ? "Đã duyệt bài đăng" : "Đã từ chối bài đăng");
       }
     } catch (error) {
       toast.error("Lỗi cập nhật trạng thái");
+    } finally {
+      setIsRejecting(false);
     }
   };
 
@@ -147,13 +154,13 @@ export default function AdminPosts() {
   const getStatusBadge = (status: PostStatus) => {
     switch (status) {
       case "pending":
-        return <span className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-wider"><Clock className="w-3 h-3" /> Chờ duyệt</span>;
+        return <span className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-[10px] font-black uppercase tracking-wider border border-orange-100/50"><Clock className="w-3 h-3" /> Chờ duyệt</span>;
       case "approved":
-        return <span className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-black uppercase tracking-wider"><CheckCircle2 className="w-3 h-3" /> Đang hiển thị</span>;
+        return <span className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full text-[10px] font-black uppercase tracking-wider border border-green-100/50"><CheckCircle2 className="w-3 h-3" /> Đang hiển thị</span>;
       case "rejected":
-        return <span className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 rounded-full text-[10px] font-black uppercase tracking-wider"><XCircle className="w-3 h-3" /> Đã từ chối</span>;
+        return <span className="flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 rounded-full text-[10px] font-black uppercase tracking-wider border border-red-100/50"><XCircle className="w-3 h-3" /> Bị ẩn</span>;
       case "expired":
-        return <span className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-[10px] font-black uppercase tracking-wider">Hết hạn</span>;
+        return <span className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-[10px] font-black uppercase tracking-wider border border-gray-200/50">Hết hạn</span>;
     }
   };
 
@@ -163,7 +170,7 @@ export default function AdminPosts() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">Quản lý tin đăng</h1>
-          <p className="text-sm font-semibold text-gray-400 mt-1">Phê duyệt và kiểm soát chất lượng dữ liệu "Tin thật"</p>
+          <p className="text-sm font-semibold text-gray-600 mt-1">Phê duyệt và kiểm soát chất lượng dữ liệu "Tin thật"</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
@@ -215,12 +222,12 @@ export default function AdminPosts() {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-gray-50">
-              <th className="px-8 py-6 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Thông tin</th>
-              <th className="px-8 py-6 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Người đăng</th>
-              <th className="px-8 py-6 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Giá / Khu vực</th>
-              <th className="px-8 py-6 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Hết hạn</th>
-              <th className="px-8 py-6 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Trạng thái</th>
-              <th className="px-8 py-6 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Hành động</th>
+              <th className="px-8 py-6 text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Thông tin</th>
+              <th className="px-8 py-6 text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Người đăng</th>
+              <th className="px-8 py-6 text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Giá / Khu vực</th>
+              <th className="px-8 py-6 text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Hết hạn</th>
+              <th className="px-8 py-6 text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Trạng thái</th>
+              <th className="px-8 py-6 text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Hành động</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -252,9 +259,9 @@ export default function AdminPosts() {
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{post.title}</h4>
-                      <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-400 font-bold">
+                      <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-600 font-bold">
                         <Clock className="w-3 h-3" /> {getRelativeTime(post.createdAt)}
-                        <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                        <span className="w-1 h-1 bg-gray-400 rounded-full" />
                         ID: #{post._id.slice(-6).toUpperCase()}
                       </div>
                     </div>
@@ -275,7 +282,7 @@ export default function AdminPosts() {
                   {post.expiresAt ? (
                     <div className="flex flex-col gap-1">
                       <p className={`text-xs font-bold flex items-center gap-1 ${
-                        new Date(post.expiresAt) < new Date() ? 'text-red-500' : 'text-gray-700'
+                        new Date(post.expiresAt) < new Date() ? 'text-red-500' : 'text-gray-900'
                       }`}>
                         <Calendar className="w-3 h-3" />
                         {new Date(post.expiresAt).toLocaleDateString("vi-VN")}
@@ -283,7 +290,7 @@ export default function AdminPosts() {
                       {new Date(post.expiresAt) < new Date() ? (
                         <span className="text-[9px] font-black text-red-600 uppercase tracking-tighter bg-red-50 px-1.5 py-0.5 rounded-md self-start">Quá hạn</span>
                       ) : (
-                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">
+                        <span className="text-[9px] font-bold text-gray-600 uppercase tracking-tighter">
                           Còn {Math.ceil((new Date(post.expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} ngày
                         </span>
                       )}
@@ -297,32 +304,40 @@ export default function AdminPosts() {
                 </td>
                 <td className="px-8 py-6">
                   <div className="flex items-center gap-2">
-                    {post.status === "pending" ? (
-                      <>
+                    <div className="flex items-center gap-2">
+                      {/* Nút Duyệt: Hiện khi tin chưa duyệt (pending, rejected, expired) */}
+                      {post.status !== "approved" && (
                         <button 
                           onClick={() => handleUpdateStatus(post._id, "approved")}
-                          className="p-2.5 bg-green-50 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm" title="Duyệt"
+                          className="p-2.5 bg-green-50 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm" title="Duyệt hiển thị"
                         >
                           <CheckCircle2 className="w-4 h-4" />
                         </button>
+                      )}
+
+                      {/* Nút Ẩn: Hiện khi tin chưa bị ẩn (pending, approved, expired) */}
+                      {post.status !== "rejected" && (
                         <button 
-                          onClick={() => handleUpdateStatus(post._id, "rejected")}
-                          className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Từ chối"
+                          onClick={() => setRejectingPostId(post._id)}
+                          className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm" title="Ẩn bài viết"
                         >
                           <XCircle className="w-4 h-4" />
                         </button>
-                      </>
-                    ) : (
-                      <button 
-                        onClick={() => {
-                          setEditingPost(post);
-                          setShowEditModal(true);
-                        }}
-                        className="p-2.5 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-600 hover:text-white transition-all shadow-sm flex items-center justify-center" title="Chỉnh sửa nhanh (Trạng thái/Hạn)"
-                      >
-                        <Settings className="w-4 h-4" />
-                      </button>
-                    )}
+                      )}
+
+                      {/* Nút Chỉnh sửa nhanh: Hiện khi không phải đang chờ duyệt (vì chờ duyệt đã có 2 nút to ở trên) */}
+                      {post.status !== "pending" && (
+                        <button 
+                          onClick={() => {
+                            setEditingPost(post);
+                            setShowEditModal(true);
+                          }}
+                          className="p-2.5 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-600 hover:text-white transition-all shadow-sm flex items-center justify-center" title="Quản lý Trạng thái/Hạn"
+                        >
+                          <Settings className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                     
                     <Link 
                       href={`/post?edit=${post._id}`}
@@ -403,30 +418,46 @@ export default function AdminPosts() {
               const formData = new FormData(e.currentTarget);
               handleAdminUpdate(editingPost._id, {
                 status: formData.get("status"),
+                rejectionReason: formData.get("rejectionReason"),
                 expiresAt: formData.get("expiresAt")
               });
             }} className="space-y-6">
               <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Trạng thái</label>
+                <label className="block text-xs font-black text-gray-800 uppercase tracking-widest mb-2">Trạng thái</label>
                 <select 
                   name="status"
                   defaultValue={editingPost.status}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold outline-none focus:border-blue-500 transition-all"
+                  onChange={(e) => {
+                    setEditingPost({...editingPost, status: e.target.value as PostStatus});
+                  }}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-900 outline-none focus:border-blue-500 transition-all"
                 >
                   <option value="pending">Chờ duyệt</option>
                   <option value="approved">Duyệt hiển thị</option>
-                  <option value="rejected">Từ chối</option>
+                  <option value="rejected">Từ chối (Ẩn)</option>
                   <option value="expired">Hết hạn</option>
                 </select>
               </div>
 
+              {editingPost.status === 'rejected' && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                  <label className="block text-xs font-black text-red-600 uppercase tracking-widest mb-2">Lý do từ chối</label>
+                  <textarea 
+                    name="rejectionReason"
+                    defaultValue={editingPost.rejectionReason || ""}
+                    placeholder="Nhập lý do ẩn bài..."
+                    className="w-full px-4 py-3 bg-red-50/30 border border-red-100 rounded-xl text-sm font-bold text-gray-900 outline-none focus:border-red-500 transition-all min-h-[80px]"
+                  />
+                </div>
+              )}
+
               <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Ngày hết hạn</label>
+                <label className="block text-xs font-black text-gray-800 uppercase tracking-widest mb-2">Ngày hết hạn</label>
                 <input 
                   type="date" 
                   name="expiresAt"
                   defaultValue={editingPost.expiresAt ? new Date(editingPost.expiresAt).toISOString().split('T')[0] : ""}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold outline-none focus:border-blue-500 transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-900 outline-none focus:border-blue-500 transition-all"
                 />
               </div>
 
@@ -502,6 +533,50 @@ export default function AdminPosts() {
                     Việc tắt yêu cầu duyệt bài có thể dẫn đến rủi ro về nội dung rác.
                   </p>
                </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Rejection Reason Modal */}
+      {rejectingPostId && (
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setRejectingPostId(null)} />
+          <div className="bg-white rounded-[32px] w-full max-w-md relative z-10 shadow-2xl border border-gray-100 p-8 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center">
+                <ShieldAlert className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-gray-900 uppercase">Từ chối bài đăng</h3>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Vui lòng nêu rõ lý do bị ẩn</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <textarea 
+                className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-semibold outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/5 transition-all min-h-[120px]"
+                placeholder="Ví dụ: Hình ảnh mờ, sai địa chỉ, tin rác,..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+              />
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setRejectingPostId(null)}
+                  className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all"
+                >
+                  Hủy
+                </button>
+                <button 
+                  disabled={!rejectionReason.trim() || isRejecting}
+                  onClick={() => {
+                    setIsRejecting(true);
+                    handleUpdateStatus(rejectingPostId, "rejected", rejectionReason);
+                  }}
+                  className="flex-[2] py-4 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-500/20 disabled:opacity-50"
+                >
+                  {isRejecting ? "Đang xử lý..." : "Xác nhận từ chối"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

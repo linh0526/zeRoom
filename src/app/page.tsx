@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import { getRelativeTime } from "@/lib/formatDate";
 
 const MapComponent = dynamic(() => import("@/components/MapComponent"), {
   ssr: false,
@@ -37,7 +38,7 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
       </div>
       <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden mb-4 group bg-gray-100">
         <img 
-          src={images[currentIdx] || ''} 
+          src={images[currentIdx] || undefined} 
           alt={room.title} 
           className="w-full h-full object-contain" 
         />
@@ -70,7 +71,7 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
                onClick={() => setCurrentIdx(idx)}
                className={`relative w-28 h-20 flex-shrink-0 rounded-lg overflow-hidden transition-all duration-300 ${currentIdx === idx ? 'ring-2 ring-blue-600 ring-offset-2 opacity-100' : 'opacity-40 hover:opacity-100'}`}
              >
-                <img src={img} alt="" className="w-full h-full object-cover" />
+                <img src={img || undefined} alt="" className="w-full h-full object-cover" />
              </button>
           ))}
         </div>
@@ -81,7 +82,11 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
           <p className="text-xl font-black text-blue-600">
             {room.price >= 1000000 ? `${(room.price / 1000000).toLocaleString("vi-VN")} Tr₫` : `${room.price.toLocaleString("vi-VN")}đ`}
           </p>
-          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Giá thuê / tháng</p>
+          <div className="flex items-center gap-2">
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Giá thuê / tháng</p>
+            <span className="w-1 h-1 bg-gray-300 rounded-full" />
+            <p className="text-[10px] text-gray-400 font-bold italic">{getRelativeTime(room.createdAt)}</p>
+          </div>
         </div>
       </div>
     </div>

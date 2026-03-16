@@ -261,7 +261,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                       <div className="absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 bg-[length:200%_100%] animate-[shimmer_1.5s_infinite] shadow-inner" />
                     )}
                     <img 
-                      src={room.images?.[0] || ''} 
+                      src={room.images?.[0] || undefined} 
                       alt={room.title} 
                       onError={(e) => (e.currentTarget.style.display = 'none')}
                       loading="lazy"

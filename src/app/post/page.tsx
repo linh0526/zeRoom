@@ -45,7 +45,7 @@ export default function PostRentalPage() {
 function PostRentalContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
-
+  const today = new Date().toISOString().split('T')[0];
   const [formData, setFormData] = useState({
     title: "",
     category: "Thuê trọ",
@@ -54,7 +54,7 @@ function PostRentalContent() {
     areaInfo: "",
     price: "",
     areaSize: "",
-    availableDate: "2026-03-12",
+    availableDate: today,
     phone: "",
     lat: 10.762622,
     lng: 106.660172,
@@ -126,6 +126,11 @@ function PostRentalContent() {
   const handleSubmit = async () => {
     if (!formData.address || !formData.price || !formData.phone) {
       toast.error("Vui lòng điền đầy đủ các thông tin bắt buộc (*)");
+      return;
+    }
+
+    if (formData.images.length === 0) {
+      toast.error("Vui lòng thêm ít nhất một hình ảnh cho bài đăng");
       return;
     }
 
