@@ -87,6 +87,7 @@ function PostRentalContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (editId) {
@@ -208,21 +209,44 @@ function PostRentalContent() {
     const files = e.target.files;
     if (!files) return;
 
-    for (const file of Array.from(files)) {
-      if (file.size > 10 * 1024 * 1024) {
-        alert("File quá lớn, vui lòng chọn file dưới 10MB");
-        continue;
+    setIsUploading(true);
+    const uploadToast = toast.loading("Đang tải ảnh lên...");
+
+    try {
+      for (const file of Array.from(files)) {
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`File ${file.name} quá lớn (tối đa 10MB)`);
+          continue;
+        }
+        
+        try {
+          // 1. Resize/Compress image
+          const compressedImage = await resizeImage(file);
+          
+          // 2. Upload to Cloudinary via our API
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: compressedImage }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setFormData(prev => ({ 
+              ...prev, 
+              images: [...prev.images, data.url] 
+            }));
+          } else {
+            toast.error(`Không thể tải ảnh ${file.name} lên`);
+          }
+        } catch (error) {
+          console.error("Upload error:", error);
+          toast.error(`Lỗi khi xử lý ảnh ${file.name}`);
+        }
       }
-      
-      try {
-        const compressedImage = await resizeImage(file);
-        setFormData(prev => ({ 
-          ...prev, 
-          images: [...prev.images, compressedImage] 
-        }));
-      } catch (error) {
-        console.error("Compression error:", error);
-      }
+      toast.success("Tải ảnh hoàn tất", { id: uploadToast });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -350,11 +374,17 @@ function PostRentalContent() {
                 ))}
                 
                 <div 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="aspect-square border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 hover:border-blue-300 transition-all cursor-pointer group shadow-sm"
+                  onClick={() => !isUploading && fileInputRef.current?.click()}
+                  className={`aspect-square border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 hover:border-blue-300 transition-all cursor-pointer group shadow-sm ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
                 >
-                  <Upload className="w-6 h-6 text-gray-400 group-hover:text-blue-500 mb-2" />
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-tighter">Thêm ảnh</span>
+                  {isUploading ? (
+                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                  ) : (
+                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-blue-500 mb-2" />
+                  )}
+                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-tighter">
+                    {isUploading ? "Đang tải..." : "Thêm ảnh"}
+                  </span>
                 </div>
               </div>
               <p className="text-[11px] text-gray-400 font-medium">Tối đa 10MB mỗi file. Khuyên dùng ít nhất 3 ảnh thật của phòng.</p>

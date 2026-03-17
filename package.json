@@ -12,6 +12,7 @@
     "@auth/mongodb-adapter": "^3.11.1",
     "@types/leaflet": "^1.9.21",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.9.0",
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
     "leaflet-defaulticon-compatibility": "^0.1.2",
