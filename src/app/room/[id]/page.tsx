@@ -17,9 +17,41 @@ import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
 import mongoose from "mongoose";
 import { cache } from "react";
+import { Metadata } from "next";
 import { cleanAddress } from "@/lib/addressUtils";
 
 export const revalidate = 3600; // Revalidate every 1 hour
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  if (!mongoose.Types.ObjectId.isValid(id)) return {};
+
+  await dbConnect();
+  // Fetch basic info for Metadata including 1 image if available
+  const roomSEO = await Post.findById(id).select("title address price areaSize images category").lean() as any;
+  if (!roomSEO) return {};
+
+  const title = `${roomSEO.title} - ${cleanAddress(roomSEO.address)}`;
+  const description = `Cho thuê ${roomSEO.category || "Phòng trọ"}: ${roomSEO.title} tại ${cleanAddress(roomSEO.address)}. Giá tham khảo: ${roomSEO.price?.toLocaleString("vi-VN")}đ/tháng. Diện tích: ${roomSEO.areaSize || 0}m².`;
+  
+  const ogImages = roomSEO.images?.[0] ? [{ url: roomSEO.images[0] }] : [];
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: ogImages,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: roomSEO.images?.[0] ? [roomSEO.images[0]] : [],
+    }
+  };
+}
 
 const getRoom = cache(async (id: string) => {
   await dbConnect();
@@ -60,8 +92,34 @@ async function RoomDetailContent({ id }: { id: string }) {
     ? new Date(room.availableDate).toLocaleDateString("vi-VN") 
     : "Đang cập nhật";
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://zeroom.vercel.app";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Accommodation",
+    "name": room.title,
+    "description": room.note || `Cho thuê ${room.category || "phòng trọ"} ${room.title}`,
+    "url": `${baseUrl}/room/${id}`,
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": room.address,
+      "addressCountry": "VN"
+    },
+    "numberOfRooms": room.bedrooms || 1,
+    "offers": {
+      "@type": "Offer",
+      "price": room.price,
+      "priceCurrency": "VND",
+      "availability": "https://schema.org/InStock",
+      "url": `${baseUrl}/room/${id}`
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gray-50 pb-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header />
       <ViewTracker postId={id} />
       
