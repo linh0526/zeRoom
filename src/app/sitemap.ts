@@ -2,8 +2,14 @@ import { MetadataRoute } from "next";
 import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
 
+const getBaseUrl = () => {
+  let url = process.env.NEXT_PUBLIC_BASE_URL || "https://zeroom.vercel.app";
+  if (!url.startsWith("http")) url = `https://${url}`;
+  return url;
+};
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://zeroom.vercel.app";
+  const baseUrl = getBaseUrl();
 
   try {
     await dbConnect();

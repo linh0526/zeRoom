@@ -52,7 +52,7 @@ export default function SignInPage() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-400 rounded-full blur-3xl opacity-10 -ml-44 -mb-44 animate-pulse"></div>
         
         <div className="relative z-10 space-y-8">
-          <Link href="/" className="inline-flex items-center gap-4 group">
+          <Link href="/" aria-label="zeRoom Home" className="flex items-center gap-3 group transition-all">
             <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110">
               <span className="text-blue-600 font-bold text-4xl italic">z</span>
             </div>
@@ -101,11 +101,12 @@ export default function SignInPage() {
 
             <form onSubmit={handleCredentialsLogin} className="space-y-4">
               <div className="space-y-2 group">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 group-focus-within:text-blue-500 transition-colors">Địa chỉ Email</label>
+                <label htmlFor="email" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 group-focus-within:text-blue-500 transition-colors">Địa chỉ Email</label>
                 <div className="relative">
                   <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
                   <input 
                     type="email" 
+                    id="email"
                     placeholder="name@example.com"
                     className="w-full pl-14 pr-6 py-4 bg-gray-50 border-2 border-transparent rounded-[24px] text-sm text-gray-900 focus:bg-white focus:border-blue-500 outline-none transition-all font-bold placeholder:text-gray-300 shadow-sm focus:shadow-md"
                     value={email}
@@ -115,11 +116,12 @@ export default function SignInPage() {
                 </div>
               </div>
               <div className="space-y-2 group">
-                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 group-focus-within:text-blue-500 transition-colors">Mật khẩu</label>
+                 <label htmlFor="password" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 group-focus-within:text-blue-500 transition-colors">Mật khẩu</label>
                 <div className="relative">
                   <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
                   <input 
                     type="password" 
+                    id="password"
                     placeholder="********"
                     className="w-full pl-14 pr-6 py-4 bg-gray-50 border-2 border-transparent rounded-[24px] text-sm text-gray-900 focus:bg-white focus:border-blue-500 outline-none transition-all font-bold placeholder:text-gray-300 shadow-sm focus:shadow-md"
                     value={password}
@@ -148,7 +150,7 @@ export default function SignInPage() {
             </form>
           </div>
 
-          <p className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-10">
+          <p className="text-center text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-10">
             Chưa có tài khoản? <Link href="/auth/register" className="text-blue-600 hover:underline cursor-pointer transition-all hover:tracking-[0.15em]">Đăng ký ngay</Link>
           </p>
         </div>

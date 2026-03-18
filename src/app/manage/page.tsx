@@ -18,6 +18,7 @@ import {
   EyeOff
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import toast from "react-hot-toast";
 
 export default function ManagePostsPage() {
@@ -188,7 +189,7 @@ export default function ManagePostsPage() {
                       <td className="px-6 py-6">
                         <div className="flex items-center gap-4">
                           <div className="w-14 h-14 rounded-2xl bg-gray-100 overflow-hidden shrink-0 shadow-sm border border-white">
-                             <img src={post.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2340&auto=format&fit=crop'} alt="" className="w-full h-full object-cover" />
+                             <Image src={post.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2340&auto=format&fit=crop'} alt="" fill sizes="56px" className="object-cover" />
                           </div>
                           <div>
                             <p className="text-sm font-bold text-gray-900 mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">{post.title}</p>

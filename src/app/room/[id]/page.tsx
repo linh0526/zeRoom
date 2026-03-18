@@ -92,7 +92,13 @@ async function RoomDetailContent({ id }: { id: string }) {
     ? new Date(room.availableDate).toLocaleDateString("vi-VN") 
     : "Đang cập nhật";
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://zeroom.vercel.app";
+  const getBaseUrl = () => {
+    let url = process.env.NEXT_PUBLIC_BASE_URL || "https://zeroom.vercel.app";
+    if (!url.startsWith("http")) url = `https://${url}`;
+    return url;
+  };
+
+  const baseUrl = getBaseUrl();
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Accommodation",

@@ -3,6 +3,7 @@
 import { Search, SlidersHorizontal, MapPin, Home, Wifi, Wind, ShieldCheck, Car, X, ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { getRelativeTime } from "@/lib/formatDate";
 import { cleanAddress } from "@/lib/addressUtils";
 
@@ -64,12 +65,14 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                 <input 
                   type="text" 
                   placeholder="Bạn muốn đến đâu?" 
+                  aria-label="Tìm kiếm địa điểm"
                   className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-none rounded-xl text-sm text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                   onChange={(e) => onFilterChange({ minPrice, maxPrice, minArea, category, search: e.target.value })}
                 />
               </div>
               <button 
                 onClick={() => setShowFilters(!showFilters)}
+                aria-label="Ẩn hiện bộ lọc"
                 className={`p-2.5 rounded-xl transition-all border ${showFilters ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' : 'bg-gray-50 text-gray-500 border-transparent hover:bg-gray-100'}`}
               >
                 <SlidersHorizontal className="w-5 h-5" />
@@ -110,6 +113,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                     type="range" 
                     min="0" 
                     max="15000000" 
+                    aria-label="Thanh trượt ngân sách tối đa"
                     step="500000"
                     value={maxPrice}
                     onChange={(e) => handlePriceChange(minPrice, Number(e.target.value))}
@@ -121,6 +125,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                         <input 
                           type="number" 
                           value={minPrice}
+                          aria-label="Giá thuê thấp nhất"
                           onChange={(e) => handlePriceChange(Number(e.target.value), maxPrice)}
                           className="w-full pl-3 pr-7 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 outline-none focus:border-blue-500 transition-all font-bold"
                         />
@@ -133,6 +138,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                         <input 
                           type="number" 
                           value={maxPrice}
+                          aria-label="Giá thuê cao nhất"
                           onChange={(e) => handlePriceChange(minPrice, Number(e.target.value))}
                           className="w-full pl-3 pr-7 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 outline-none focus:border-blue-500 transition-all font-bold"
                         />
@@ -154,6 +160,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                     type="range" 
                     min="0" 
                     max="100" 
+                    aria-label="Thanh trượt diện tích phù hợp"
                     step="5"
                     value={minArea}
                     onChange={(e) => handleAreaChange(Number(e.target.value))}
@@ -178,7 +185,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
               <ChevronLeft className="w-4 h-4" /> Quay lại bộ lọc
             </button>
             <div className="relative w-full h-40 rounded-xl overflow-hidden mb-2 shadow-sm">
-              <img src={selectedRoom.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2340&auto=format&fit=crop'} alt={selectedRoom.title} className="w-full h-full object-cover" />
+              <Image src={selectedRoom.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2340&auto=format&fit=crop'} alt={selectedRoom.title} fill sizes="(max-width: 768px) 100vw, 448px" className="object-cover" />
             </div>
             <h2 className="text-lg font-bold text-gray-900 leading-tight">{selectedRoom.title}</h2>
             <p className="flex items-start gap-1.5 text-xs text-gray-500 leading-relaxed">
@@ -260,16 +267,15 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                     {!room.images?.[0] && (
                       <div className="absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 bg-[length:200%_100%] animate-[shimmer_1.5s_infinite] shadow-inner" />
                     )}
-                    <img 
-                      src={room.images?.[0] || undefined} 
-                      alt={room.title} 
-                      onError={(e) => (e.currentTarget.style.display = 'none')}
-                      loading="lazy"
-                      onLoad={(e) => (e.currentTarget.style.opacity = "1")}
-                      style={{ opacity: room.images?.[0] ? 0 : 1 }}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" 
-                    />
-                    {!room.images?.[0] && (
+                    {room.images?.[0] ? (
+                      <Image 
+                        src={room.images[0]} 
+                        alt={room.title} 
+                        fill
+                        sizes="128px"
+                        className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                      />
+                    ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
                         <Home className="w-8 h-8 text-gray-200" />
                       </div>

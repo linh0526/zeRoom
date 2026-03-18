@@ -8,6 +8,7 @@ import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import { useEffect, useRef, useState } from "react";
 import { getRelativeTime } from "@/lib/formatDate";
+import Image from "next/image";
 
 interface Room {
   _id: string;
@@ -84,10 +85,12 @@ const RoomMarker = ({ room, isSelected, onRoomSelect }: { room: any, isSelected:
       <Tooltip direction="top" offset={[0, -15]} opacity={1} className={`custom-tooltip shadow-2xl p-0 border-none rounded-xl overflow-hidden bg-transparent ${isSelected ? 'hidden' : ''}`}>
         <div className="flex flex-col w-[200px] bg-white rounded-xl overflow-hidden shadow-2xl">
           <div className="w-full h-28 relative">
-            <img 
-              src={room.images?.[0] || undefined} 
+            <Image 
+              src={room.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2340&auto=format&fit=crop'} 
               alt={room.title} 
-              className={`w-full h-full object-cover ${!room.images?.[0] ? 'bg-gray-100' : ''}`}
+              fill
+              sizes="200px"
+              className={`object-cover ${!room.images?.[0] ? 'bg-gray-100' : ''}`}
             />
             {!room.images?.[0] && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-50">

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
+import NextImage from "next/image";
 
 // Import Map components dynamically
 const MapPicker = dynamic(() => import("./components/MapPicker"), { 
@@ -363,9 +364,11 @@ function PostRentalContent() {
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {formData.images.map((img, idx) => (
                   <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden group border border-gray-100 shadow-sm">
-                    <img src={img} alt="Preview" className="w-full h-full object-cover" />
+                    <NextImage src={img} alt={`Preview ${idx + 1}`} fill sizes="200px" className="w-full h-full object-cover" />
                     <button 
                       onClick={() => removeImage(idx)}
+                      type="button"
+                      aria-label={`Xóa ảnh ${idx + 1}`}
                       className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
                     >
                       <X className="w-4 h-4" />
@@ -373,8 +376,10 @@ function PostRentalContent() {
                   </div>
                 ))}
                 
-                <div 
+                <button 
+                  type="button"
                   onClick={() => !isUploading && fileInputRef.current?.click()}
+                  aria-label="Tải ảnh lên từ thiết bị"
                   className={`aspect-square border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 hover:border-blue-300 transition-all cursor-pointer group shadow-sm ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
                 >
                   {isUploading ? (
@@ -385,7 +390,7 @@ function PostRentalContent() {
                   <span className="text-[11px] font-bold text-gray-500 uppercase tracking-tighter">
                     {isUploading ? "Đang tải..." : "Thêm ảnh"}
                   </span>
-                </div>
+                </button>
               </div>
               <p className="text-[11px] text-gray-400 font-medium">Tối đa 10MB mỗi file. Khuyên dùng ít nhất 3 ảnh thật của phòng.</p>
 
@@ -397,7 +402,9 @@ function PostRentalContent() {
                 <div className="flex gap-2">
                   <input 
                     type="text" 
+                    id="imageLink"
                     placeholder="Dán link ảnh (hãy sao chép địa chỉ liên kết) từ Facebook, ...."
+                    aria-label="Link hình ảnh từ bên ngoài"
                     className="flex-1 px-4 py-3 bg-white border border-blue-100 rounded-xl text-sm font-semibold text-gray-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all"
                     value={imageLink}
                     onChange={(e) => setImageLink(e.target.value)}
@@ -426,7 +433,7 @@ function PostRentalContent() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
               <div className="space-y-8">
                 <section className="space-y-2">
-                  <label className="text-[13px] font-bold text-gray-800">
+                  <label htmlFor="addressSearch" className="text-[13px] font-bold text-gray-800">
                     <span className="text-red-500">*</span> Nhập địa chỉ hoặc chọn vị trí trên bản đồ
                   </label>
                   <form 
@@ -435,6 +442,7 @@ function PostRentalContent() {
                   >
                     <input 
                       type="text" 
+                      id="addressSearch"
                       placeholder="Nhập địa chỉ bạn muốn tìm kiếm (Nhấn Enter để tìm)"
                       className={`w-full pl-11 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all placeholder:text-gray-400 shadow-sm font-medium ${isSearching ? 'opacity-70' : ''}`}
                       value={formData.address}
@@ -451,11 +459,12 @@ function PostRentalContent() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <section className="space-y-2">
-                    <label className="text-[13px] font-bold text-gray-800">
+                    <label htmlFor="displayAddress" className="text-[13px] font-bold text-gray-800">
                       <span className="text-red-500">*</span> Địa chỉ hiển thị khi đăng tin
                     </label>
                     <input 
                       type="text" 
+                      id="displayAddress"
                       placeholder="Nhập số nhà và tên đường..."
                       className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-blue-500 transition-all shadow-sm font-medium"
                       value={formData.displayAddress}
@@ -463,11 +472,12 @@ function PostRentalContent() {
                     />
                   </section>
                   <section className="space-y-2">
-                    <label className="text-[13px] font-bold text-gray-800">
+                    <label htmlFor="areaInfo" className="text-[13px] font-bold text-gray-800">
                       <span className="text-red-500">*</span> Phường/Xã, Quận/Huyện, Tỉnh/TP
                     </label>
                     <input 
                       type="text" 
+                      id="areaInfo"
                       readOnly
                       placeholder="Phường Tân Định, Quận 1, Hồ Chí Minh"
                       className="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm text-gray-500 outline-none shadow-sm font-medium cursor-not-allowed"
@@ -481,11 +491,12 @@ function PostRentalContent() {
                 </p>
 
                 <section className="space-y-2">
-                   <label className="text-[13px] font-bold text-gray-800">
+                   <label htmlFor="postTitle" className="text-[13px] font-bold text-gray-800">
                     <span className="text-red-500">*</span> Tên hiển thị cho đăng tin
                   </label>
                   <input 
                     type="text" 
+                    id="postTitle"
                     placeholder="Ví dụ: 126 Hàm Nghi - Thạc Gián"
                     className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-blue-500 transition-all shadow-sm font-semibold"
                     value={formData.title}
@@ -501,7 +512,7 @@ function PostRentalContent() {
                   <div className="flex items-center gap-10">
                     <label className="flex items-center gap-3 cursor-pointer group">
                       <div className="relative flex items-center justify-center">
-                        <input type="radio" name="type" defaultChecked className="peer appearance-none w-6 h-6 border-2 border-gray-200 rounded-full checked:border-blue-600 checked:border-[6px] transition-all" />
+                        <input type="radio" id="category_rental" name="type" defaultChecked className="peer appearance-none w-6 h-6 border-2 border-gray-200 rounded-full checked:border-blue-600 checked:border-[6px] transition-all" />
                       </div>
                       <span className="text-[13px] font-bold text-gray-600 peer-checked:text-blue-600 transition-colors">Thuê trọ</span>
                     </label>
@@ -530,11 +541,12 @@ function PostRentalContent() {
             <section className="space-y-6 pt-4 border-t border-gray-50 mt-4">
               <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Tiện nghi / Đặc điểm</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-10">
-                {DEFAULT_AMENITIES.map((item) => (
-                  <label key={item} className="flex items-center gap-3 cursor-pointer group">
+                {DEFAULT_AMENITIES.map((item, idx) => (
+                  <label key={item} htmlFor={`amenity_${idx}`} className="flex items-center gap-3 cursor-pointer group">
                     <div className="relative flex items-center justify-center">
                       <input 
                         type="checkbox" 
+                        id={`amenity_${idx}`}
                         className="peer appearance-none w-5 h-5 border-2 border-gray-200 rounded-md checked:bg-blue-600 checked:border-blue-600 transition-all cursor-pointer"
                         checked={formData.amenities.includes(item)}
                         onChange={() => toggleAmenity(item)}
@@ -557,7 +569,7 @@ function PostRentalContent() {
                     />
                     <CheckCircle className="absolute w-3.5 h-3.5 text-white pointer-events-none" />
                   </div>
-                  <label className="text-[13px] font-bold text-gray-800 flex items-center gap-1">
+                  <label htmlFor="bedrooms" className="text-[13px] font-bold text-gray-800 flex items-center gap-1">
                     <span className="text-red-500">*</span> Số phòng ngủ
                   </label>
                 </div>
@@ -565,6 +577,7 @@ function PostRentalContent() {
                 <div className="relative max-w-[150px] flex-1">
                   <input 
                     type="number" 
+                    id="bedrooms"
                     min="1"
                     placeholder="1"
                     className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-blue-500 transition-all shadow-sm"
@@ -579,12 +592,13 @@ function PostRentalContent() {
             {/* Price & Details Cluster */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pt-6">
               <section className="space-y-2">
-                <label className="text-[13px] font-bold text-gray-800">
+                <label htmlFor="price" className="text-[13px] font-bold text-gray-800">
                   <span className="text-red-500">*</span> Giá thuê (VNĐ)
                 </label>
                 <div className="relative">
                   <input 
                     type="number" 
+                    id="price"
                     placeholder="Nhập giá..."
                     className="w-full pl-4 pr-14 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-blue-500 transition-all shadow-sm"
                     value={formData.price}
@@ -599,10 +613,11 @@ function PostRentalContent() {
                 )}
               </section>
               <section className="space-y-2">
-                <label className="text-[13px] font-bold text-gray-800">Diện tích (m²)</label>
+                <label htmlFor="areaSize" className="text-[13px] font-bold text-gray-800">Diện tích (m²)</label>
                 <div className="relative">
                   <input 
                     type="number" 
+                    id="areaSize"
                     placeholder="Ví dụ: 25"
                     className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-blue-500 transition-all shadow-sm"
                     value={formData.areaSize}
@@ -612,12 +627,13 @@ function PostRentalContent() {
                 </div>
               </section>
               <section className="space-y-2">
-                <label className="text-[13px] font-bold text-gray-800">
+                <label htmlFor="availableDate" className="text-[13px] font-bold text-gray-800">
                    <span className="text-red-500">*</span> Ngày sẵn sàng
                 </label>
                 <div className="relative">
                   <input 
                     type="date" 
+                    id="availableDate"
                     value={formData.availableDate}
                     className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-blue-500 transition-all shadow-sm appearance-none"
                     onChange={(e) => setFormData({...formData, availableDate: e.target.value})}
@@ -626,12 +642,13 @@ function PostRentalContent() {
                 </div>
               </section>
               <section className="space-y-2">
-                <label className="text-[13px] font-bold text-gray-800">
+                <label htmlFor="phone" className="text-[13px] font-bold text-gray-800">
                   <span className="text-red-500">*</span> Số điện thoại
                 </label>
                 <div className="relative">
                   <input 
                     type="tel" 
+                    id="phone"
                     placeholder="0353..."
                     className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-blue-500 transition-all shadow-sm"
                     value={formData.phone}
@@ -644,7 +661,7 @@ function PostRentalContent() {
             
             <section className="mt-8 space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <label htmlFor="note" className="text-xl font-bold text-gray-900 flex items-center gap-2">
                   <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
                   Ghi chú khác
                 </label>
@@ -661,6 +678,7 @@ function PostRentalContent() {
                 </button>
               </div>
               <textarea 
+                id="note"
                 placeholder="Nhập các thông tin về giá điện, nước, phí dịch vụ (quản lý, vệ sinh), điều khoản hợp đồng (tiền cọc, chính sách hoàn cọc), thời hạn thuê tối thiểu, giờ giấc sinh hoạt (giờ đóng/mở cửa), quy định sử dụng (nuôi thú cưng, nấu ăn, tổ chức tiệc) và các lưu ý quan trọng khác."
                 className="w-full p-6 bg-white border border-gray-200 rounded-3xl text-sm text-gray-900 outline-none focus:border-blue-500 transition-all shadow-sm min-h-[150px] leading-relaxed"
                 value={formData.note}

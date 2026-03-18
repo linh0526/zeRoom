@@ -67,7 +67,7 @@ export default function RegisterPage() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-400 rounded-full blur-3xl opacity-10 -ml-44 -mb-44 animate-pulse"></div>
         
         <div className="relative z-10 space-y-8">
-          <Link href="/" className="inline-flex items-center gap-4 group">
+          <Link href="/" aria-label="zeRoom Home" className="inline-flex items-center gap-4 group">
             <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110">
               <span className="text-blue-600 font-bold text-4xl italic">z</span>
             </div>

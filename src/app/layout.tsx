@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import "leaflet/dist/leaflet.css";
 
 import { Providers } from "@/components/Providers";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin", "vietnamese"] });
 
+// Safe fallback function cho metadataBase phòng trường hợp Vercel Env bị set sai định dạng
+const getBaseUrl = () => {
+  let url = process.env.NEXT_PUBLIC_BASE_URL || "https://zeroom.vercel.app";
+  if (!url.startsWith("http")) url = `https://${url}`;
+  return new URL(url);
+};
+
 export const metadata: Metadata = {
+  metadataBase: getBaseUrl(),
   title: {
     default: "zeRoom - Tìm kiếm Phòng trọ & Căn hộ cho thuê toàn quốc",
     template: "%s | zeRoom",
@@ -22,7 +29,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "zeRoom - Tìm kiếm Phòng trọ & Căn hộ cho thuê toàn quốc",
     description: "Tìm kiếm chỗ ở dễ dàng hơn bao giờ hết với zeRoom. Bản đồ trực quan, ảnh thật, giá tốt từ chính chủ.",
-    url: process.env.NEXT_PUBLIC_BASE_URL || "https://zeroom.vercel.app",
+    url: "/", // Dùng relative path để tự nhận diện từ metadataBase
     siteName: "zeRoom",
     locale: "vi_VN",
     type: "website",
@@ -35,6 +42,9 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+  },
+  verification: {
+    google: "iTMDpBLk814FLgdy8pmCddV-gaFGGTmw_O3dEWdomeg",
   },
 };
 

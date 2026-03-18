@@ -12,7 +12,7 @@ export default function Header() {
   return (
     <header className="h-20 border-b border-gray-100 bg-white/80 backdrop-blur-md flex items-center justify-between px-8 z-[1001] sticky top-0">
       <div className="flex items-center gap-8">
-        <Link href="/" className="flex items-center gap-3 group transition-all">
+        <Link href="/" aria-label="zeRoom Home" className="flex items-center gap-8 group transition-all">
           <div className="flex items-center gap-2.5">
             {/* Icon Container */}
             <div className="relative">
@@ -79,6 +79,7 @@ export default function Header() {
           <div className="relative">
             <button 
               onClick={() => setShowMenu(!showMenu)}
+              aria-label="Menu người dùng"
               className="flex items-center gap-2 px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-[20px] hover:bg-gray-100 transition-all group shadow-sm active:scale-95"
             >
               <User className="w-4 h-4 text-blue-600" />

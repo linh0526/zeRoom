@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, Home } from "lucide-react";
 
 interface ImageGalleryProps {
@@ -77,11 +78,13 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
           className="relative rounded-3xl overflow-hidden aspect-[16/9] shadow-md cursor-pointer group bg-gray-100"
           onClick={() => setIsModalOpen(true)}
         >
-          <img 
-            src={images[currentIndex] || undefined} 
+          <Image 
+            src={images[currentIndex]} 
             alt={`${title} - image ${currentIndex + 1}`} 
-            fetchPriority="high"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            priority
+            fill
+            sizes="(max-width: 1200px) 100vw, 800px"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
           
 
@@ -101,12 +104,14 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
               <button 
                 className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/40 text-white rounded-full transition-all opacity-0 group-hover:opacity-100"
                 onClick={prevImage}
+                aria-label="Ảnh trước đó"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <button 
                 className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white/40 text-white rounded-full transition-all opacity-0 group-hover:opacity-100"
                 onClick={nextImage}
+                aria-label="Ảnh kế tiếp"
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
@@ -121,11 +126,12 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
               <button
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
+                aria-label={`Xem ảnh thứ ${idx + 1}`}
                 className={`relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden snap-center transition-all ${
                   currentIndex === idx ? "ring-2 ring-blue-600 ring-offset-2 scale-100 opacity-100" : "opacity-60 hover:opacity-100 scale-95 hover:scale-100"
                 }`}
               >
-                <img src={img || undefined} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                <Image src={img} alt={`Thumbnail ${idx + 1}`} fill sizes="96px" className="object-cover" />
               </button>
             ))}
           </div>
@@ -136,28 +142,35 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
       {isModalOpen && (
         <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur flex items-center justify-center animate-in fade-in duration-200">
           <button 
-            className="absolute top-6 right-6 p-2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors z-50"
+            className="absolute top-6 right-6 p-2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors z-[1010]"
             onClick={() => setIsModalOpen(false)}
+            aria-label="Đóng chế độ xem toàn màn hình"
           >
             <X className="w-8 h-8" />
           </button>
 
           <button 
-            className="absolute left-6 p-4 text-white/70 hover:text-white bg-white/5 hover:bg-white/20 rounded-full transition-colors z-50"
+            className="absolute left-6 p-4 text-white/70 hover:text-white bg-white/5 hover:bg-white/20 rounded-full transition-colors z-[1010]"
             onClick={prevImage}
+            aria-label="Ảnh trước đó"
           >
             <ChevronLeft className="w-8 h-8" />
           </button>
 
-          <img 
-            src={images[currentIndex] || undefined} 
-            alt={`${title} - image ${currentIndex + 1}`} 
-            className="max-w-[90vw] max-h-[90vh] object-contain select-none"
-          />
+          <div className="relative w-[90vw] h-[90vh]">
+            <Image 
+              src={images[currentIndex]} 
+              alt={`${title} - image ${currentIndex + 1}`} 
+              fill
+              sizes="100vw"
+              className="object-contain select-none"
+            />
+          </div>
 
           <button 
-            className="absolute right-6 p-4 text-white/70 hover:text-white bg-white/5 hover:bg-white/20 rounded-full transition-colors z-50"
+            className="absolute right-6 p-4 text-white/70 hover:text-white bg-white/5 hover:bg-white/20 rounded-full transition-colors z-[1010]"
             onClick={nextImage}
+            aria-label="Ảnh kế tiếp"
           >
             <ChevronRight className="w-8 h-8" />
           </button>

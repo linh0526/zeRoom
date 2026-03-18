@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -32,16 +33,20 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1000] w-[90%] max-w-2xl bg-white rounded-2xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
       <div className="flex justify-between items-center mb-3 px-1">
         <h3 className="font-bold text-gray-800 text-sm line-clamp-1">{room.title}</h3>
-        <button onClick={onClose} className="p-1 hover:bg-gray-100 text-gray-500 hover:text-blue-600 rounded-full transition-colors shrink-0">
+        <button onClick={onClose} aria-label="Đóng bảng xem trước" className="p-1 hover:bg-gray-100 text-gray-500 hover:text-blue-600 rounded-full transition-colors shrink-0">
           <X className="w-5 h-5" />
         </button>
       </div>
       <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden mb-4 group bg-gray-100">
-        <img 
-          src={images[currentIdx] || undefined} 
-          alt={room.title} 
-          className="w-full h-full object-contain" 
-        />
+        {images[currentIdx] && (
+          <Image 
+            src={images[currentIdx]} 
+            alt={room.title} 
+            fill
+            sizes="(max-width: 768px) 90vw, (max-width: 1200px) 700px, 800px"
+            className="object-contain" 
+          />
+        )}
         {!images[currentIdx] && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50">
             <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-2">
@@ -53,10 +58,10 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
          
         {images.length > 1 && (
           <>
-            <button onClick={prevImg} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
+            <button onClick={prevImg} aria-label="Ảnh trước đó" className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
               <ChevronLeft className="w-6 h-6" />
             </button>
-            <button onClick={nextImg} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
+            <button onClick={nextImg} aria-label="Ảnh kế tiếp" className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
               <ChevronRight className="w-6 h-6" />
             </button>
           </>
@@ -69,9 +74,10 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
              <button 
                key={idx} 
                onClick={() => setCurrentIdx(idx)}
+               aria-label={`Xem ảnh thứ ${idx + 1}`}
                className={`relative w-28 h-20 flex-shrink-0 rounded-lg overflow-hidden transition-all duration-300 ${currentIdx === idx ? 'ring-2 ring-blue-600 ring-offset-2 opacity-100' : 'opacity-40 hover:opacity-100'}`}
              >
-                <img src={img || undefined} alt="" className="w-full h-full object-cover" />
+                {img && <Image src={img} alt={`Ảnh thứ ${idx + 1} của ${room.title}`} fill sizes="112px" className="object-cover" />}
              </button>
           ))}
         </div>
