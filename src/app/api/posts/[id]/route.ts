@@ -12,7 +12,15 @@ export async function GET(
   try {
     await dbConnect();
     const { id } = await params;
-    const post = await Post.findById(id).lean();
+    await dbConnect();
+    
+    let post;
+    if (require("mongoose").Types.ObjectId.isValid(id)) {
+      post = await Post.findById(id).lean();
+    } else {
+      post = await Post.findOne({ slug: id }).lean();
+    }
+
     if (!post) {
       return NextResponse.json({ error: "Không tìm thấy bài đăng" }, { status: 404 });
     }

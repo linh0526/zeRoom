@@ -10,7 +10,12 @@ export async function GET(
     const { id } = await params;
     await dbConnect();
     
-    const post: any = await Post.findById(id).select("images").lean();
+    let post: any;
+    if (require("mongoose").Types.ObjectId.isValid(id)) {
+      post = await Post.findById(id).select("images").lean();
+    } else {
+      post = await Post.findOne({ slug: id }).select("images").lean();
+    }
     
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });

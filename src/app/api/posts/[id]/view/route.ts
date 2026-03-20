@@ -17,7 +17,11 @@ export async function POST(
 
     if (!hasViewed) {
       // Tăng lượt xem trong Database
-      await Post.findByIdAndUpdate(id, { $inc: { views: 1 } });
+      if (require("mongoose").Types.ObjectId.isValid(id)) {
+        await Post.findByIdAndUpdate(id, { $inc: { views: 1 } });
+      } else {
+        await Post.findOneAndUpdate({ slug: id }, { $inc: { views: 1 } });
+      }
 
       // Thiết lập cookie để đánh dấu đã xem, hết hạn sau 24h
       const response = NextResponse.json({ success: true });
