@@ -25,8 +25,6 @@ export const revalidate = 3600; // Revalidate every 1 hour
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  if (!mongoose.Types.ObjectId.isValid(id)) return {};
-
   await dbConnect();
   // Fetch basic info for Metadata including 1 image if available
   let roomSEO: any = null;
@@ -96,11 +94,7 @@ export default async function RoomDetailPage({ params }: PageProps) {
 
 async function RoomDetailContent({ id }: { id: string }) {
 
-  // Validate ID
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    notFound();
-  }
-
+  await dbConnect();
   const room: any = await getRoom(id);
 
   if (!room) {
