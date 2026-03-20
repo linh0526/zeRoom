@@ -49,6 +49,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       images: roomSEO.images?.[0] ? [roomSEO.images[0]] : [],
+    },
+    alternates: {
+      canonical: `/room/${id}`,
     }
   };
 }
