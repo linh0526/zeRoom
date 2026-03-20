@@ -15,6 +15,7 @@ import MiniMapClient from "@/components/MiniMapClient";
 import ViewTracker from "@/components/ViewTracker";
 import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
+import User from "@/models/User";
 import mongoose from "mongoose";
 import { cache } from "react";
 import { Metadata } from "next";

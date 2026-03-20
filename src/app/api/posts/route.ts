@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
+import User from "@/models/User";
 import Settings from "@/models/Settings";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 export const revalidate = 60; // Revalidate every 60 seconds
 

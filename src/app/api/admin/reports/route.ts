@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
+import Post from "@/models/Post";
 import Report from "@/models/Report";
 
 export async function GET() {
