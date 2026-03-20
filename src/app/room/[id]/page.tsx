@@ -29,8 +29,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   await dbConnect();
   // Fetch basic info for Metadata including 1 image if available
-  const roomSEO = await Post.findById(id).select("title address price areaSize images category").lean() as any;
+  let roomSEO: any = null;
+  if (mongoose.Types.ObjectId.isValid(id)) {
+    roomSEO = await Post.findById(id).select("title slug address price areaSize images category").lean();
+  } else {
+    roomSEO = await Post.findOne({ slug: id }).select("title slug address price areaSize images category").lean();
+  }
+  
   if (!roomSEO) return {};
+
+  const roomSlug = roomSEO.slug || id;
 
   const title = `${roomSEO.title} - ${cleanAddress(roomSEO.address)}`;
   const description = `Cho thuê ${roomSEO.category || "Phòng trọ"}: ${roomSEO.title} tại ${cleanAddress(roomSEO.address)}. Giá tham khảo: ${roomSEO.price?.toLocaleString("vi-VN")}đ/tháng. Diện tích: ${roomSEO.areaSize || 0}m².`;
@@ -52,15 +60,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       images: roomSEO.images?.[0] ? [roomSEO.images[0]] : [],
     },
     alternates: {
-      canonical: `/room/${id}`,
+      canonical: `/room/${roomSlug}`,
     }
   };
 }
 
-const getRoom = cache(async (id: string) => {
+const getRoom = cache(async (idOrSlug: string) => {
   await dbConnect();
+  
+  let query;
+  if (mongoose.Types.ObjectId.isValid(idOrSlug)) {
+    query = Post.findById(idOrSlug);
+  } else {
+    query = Post.findOne({ slug: idOrSlug });
+  }
+
   // Exclude images for faster initial load, populate user verification info
-  return await Post.findById(id)
+  return await query
     .select("-images")
     .populate("user", "name isVerified status")
     .lean();

@@ -247,7 +247,7 @@ export default function ManagePostsPage() {
                           {/* View Button */}
                           <div className="relative group/tooltip">
                             <Link 
-                              href={`/room/${post._id}`}
+                              href={`/room/${post.slug || post._id}`}
                               className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm flex items-center justify-center"
                             >
                               <Eye className="w-4 h-4" />

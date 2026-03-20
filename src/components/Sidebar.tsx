@@ -197,7 +197,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                 {(selectedRoom.price / 1000000).toLocaleString("vi-VN")} Tr₫
               </div>
               <Link 
-                href={`/room/${selectedRoom._id || selectedRoom.id}`}
+                href={`/room/${selectedRoom.slug || (selectedRoom._id || selectedRoom.id)}`}
                 className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
               >
                 Xem chi tiết
@@ -304,7 +304,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                         </p>
                       </div>
                       <Link 
-                        href={`/room/${room._id}`}
+                        href={`/room/${room.slug || room._id}`}
                         onClick={(e) => e.stopPropagation()}
                         className="px-3 py-1.5 text-[10px] font-bold text-blue-600 bg-white border border-blue-100 rounded-lg hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all duration-300 shadow-sm"
                       >

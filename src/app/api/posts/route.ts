@@ -59,6 +59,7 @@ export async function GET(req: Request) {
     // Projection: always exclude images unless specifically requested
     const projection: any = {
       title: 1,
+      slug: 1,
       price: 1,
       address: 1,
       location: 1,

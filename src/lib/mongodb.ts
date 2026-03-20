@@ -1,16 +1,18 @@
 import mongoose from "mongoose";
 
+// Pre-register models to avoid "MissingSchemaError" in Next.js Serverless
+import "@/models/User";
+import "@/models/Post";
+import "@/models/Message";
+import "@/models/Report";
+import "@/models/Settings";
+
 const MONGODB_URI = process.env.MONGODB_URI || "";
 
 if (!MONGODB_URI) {
   throw new Error("Vui lòng định nghĩa biến MONGODB_URI trong file .env");
 }
 
-/**
- * Global is used here to maintain a cached connection across hot reloads
- * in development. This prevents connections from growing exponentially
- * during API Route usage.
- */
 let cached = (global as any).mongoose;
 
 if (!cached) {
@@ -28,6 +30,7 @@ async function dbConnect() {
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      console.log("MongoDB Connected and Models registered");
       return mongoose;
     });
   }
