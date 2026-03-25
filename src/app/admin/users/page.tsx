@@ -92,7 +92,7 @@ export default function AdminUsers() {
             placeholder="Tìm theo tên, email, SDT..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-semibold outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all w-80 shadow-sm"
+            className="pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-semibold outline-none focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500 transition-all w-80 shadow-sm"
           />
           <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-300" />
         </div>
@@ -109,9 +109,9 @@ export default function AdminUsers() {
              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mt-0.5">Tổng người dùng</p>
            </div>
         </div>
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5 border-l-4 border-l-blue-500">
-           <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center">
-             <ShieldCheck className="w-7 h-7 text-blue-600" />
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5 border-l-4 border-l-orange-500">
+           <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center">
+             <ShieldCheck className="w-7 h-7 text-orange-600" />
            </div>
            <div>
              <p className="text-sm font-black text-gray-900">{users.filter(u => u.isVerified).length}</p>
@@ -178,20 +178,20 @@ export default function AdminUsers() {
                 <td className="px-8 py-6">
                   <div className="flex items-center gap-4">
                     <div className="relative">
-                      <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center border-4 border-gray-50 overflow-hidden shrink-0">
+                      <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center border-4 border-gray-50 overflow-hidden shrink-0">
                          <img src={`https://ui-avatars.com/api/?name=${user.name}&background=random`} alt={user.name} />
                       </div>
                       {user.isVerified && (
-                        <div className="absolute -right-1 -bottom-1 bg-white rounded-full p-0.5 border border-blue-50">
-                           <ShieldCheck className="w-4 h-4 text-blue-600 fill-blue-50" />
+                        <div className="absolute -right-1 -bottom-1 bg-white rounded-full p-0.5 border border-orange-50">
+                           <ShieldCheck className="w-4 h-4 text-orange-600 fill-orange-50" />
                         </div>
                       )}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{user.name}</h4>
+                        <h4 className="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors uppercase tracking-tight">{user.name}</h4>
                         {user.isVerified && (
-                          <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black uppercase tracking-tighter rounded border border-blue-100">Xác minh</span>
+                          <span className="px-1.5 py-0.5 bg-orange-50 text-orange-600 text-[8px] font-black uppercase tracking-tighter rounded border border-orange-100">Xác minh</span>
                         )}
                       </div>
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">ID: {user._id.slice(-6).toUpperCase()}</p>
@@ -219,14 +219,14 @@ export default function AdminUsers() {
                        {!user.isVerified ? (
                          <button 
                            onClick={() => handleUpdateUser(user._id, { isVerified: true })}
-                           className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Xác minh tài khoản"
+                           className="p-2.5 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-600 hover:text-white transition-all shadow-sm" title="Xác minh tài khoản"
                          >
                             <ShieldCheck className="w-4 h-4" />
                          </button>
                        ) : (
                          <button 
                            onClick={() => handleUpdateUser(user._id, { isVerified: false })}
-                           className="p-2.5 bg-gray-100 text-gray-400 rounded-xl hover:bg-gray-200 hover:text-gray-600 transition-all shadow-sm" title="Hủy xác minh"
+                           className="p-2.5 bg-gray-100 text-gray-400 rounded-xl hover:bg-200 hover:text-gray-600 transition-all shadow-sm" title="Hủy xác minh"
                          >
                             <ShieldClose className="w-4 h-4" />
                          </button>
@@ -268,11 +268,11 @@ export default function AdminUsers() {
       </div>
 
       {/* Note for Admin */}
-      <div className="p-6 bg-blue-50 border border-blue-100 rounded-2xl flex items-start gap-4">
-         <div className="w-10 h-10 bg-blue-100 rounded-xl shrink-0 flex items-center justify-center">
-            <AlertTriangle className="w-5 h-5 text-blue-600" />
+      <div className="p-6 bg-orange-50 border border-orange-100 rounded-2xl flex items-start gap-4">
+         <div className="w-10 h-10 bg-orange-100 rounded-xl shrink-0 flex items-center justify-center">
+            <AlertTriangle className="w-5 h-5 text-orange-600" />
          </div>
-         <p className="text-xs font-medium text-blue-700 leading-relaxed">
+         <p className="text-xs font-medium text-orange-700 leading-relaxed">
            <strong>Mẹo bảo mật:</strong> Hãy lưu ý những tài khoản có <strong>số lượng tin đăng lớn bất thường</strong> (thanh màu đỏ ở cột Hoạt động) ở nhiều khu vực khác nhau. Đây thường là các tài khoản môi giới hoặc spam tin rác. Hãy kiểm tra nội dung trước khi phê duyệt!
          </p>
       </div>

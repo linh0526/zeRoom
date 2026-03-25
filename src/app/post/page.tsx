@@ -14,8 +14,7 @@ import {
   Info,
   Search,
   X,
-  ScrollText,
-  Link as LinkIcon
+  ScrollText
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
@@ -27,13 +26,8 @@ const MapPicker = dynamic(() => import("./components/MapPicker"), {
   loading: () => <div className="w-full h-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center text-gray-400 font-bold uppercase tracking-widest">Đang tải bản đồ...</div>
 });
 
-const DEFAULT_AMENITIES = [
-  "Wi-Fi/Internet", "Điều hòa không khí", "Bếp nấu ăn",
-  "Giường và nệm", "Tủ quần áo", "Bàn học",
-  "Máy giặt", "Camera giám sát", "Chỗ để xe",
-  "Ban công", "Cửa sổ", "Hệ thống PCCC",
-  "Giao thông thuận tiện", "Gần chợ/siêu thị", "Khu vực an ninh trật tự"
-];
+// DEFAULT_AMENITIES moved or removed as per user request
+
 
 export default function PostRentalPage() {
   return (
@@ -61,7 +55,6 @@ function PostRentalContent() {
     lng: 106.660172,
     searchCounter: 0,
     bedrooms: "1",
-    amenities: DEFAULT_AMENITIES,
     images: [] as string[],
     note: ""
   });
@@ -78,12 +71,11 @@ function PostRentalContent() {
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center font-sans">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mb-4"></div>
         <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Đang kiểm tra quyền truy cập...</p>
       </div>
     );
   }
-  const [imageLink, setImageLink] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,7 +102,6 @@ function PostRentalContent() {
               lat: post.location?.lat || 10.762622,
               lng: post.location?.lng || 106.660172,
               bedrooms: post.bedrooms?.toString() || "1",
-              amenities: post.amenities || DEFAULT_AMENITIES,
               images: post.images || [],
               note: post.note || "",
               availableDate: post.availableDate ? new Date(post.availableDate).toISOString().split('T')[0] : "2026-03-12",
@@ -163,14 +154,8 @@ function PostRentalContent() {
     }
   };
 
-  const toggleAmenity = (amenity: string) => {
-    setFormData(prev => ({
-      ...prev,
-      amenities: prev.amenities.includes(amenity)
-        ? prev.amenities.filter(a => a !== amenity)
-        : [...prev.amenities, amenity]
-    }));
-  };
+  // toggleAmenity removed
+
 
   const resizeImage = (file: File): Promise<string> => {
     return new Promise((resolve) => {
@@ -258,22 +243,6 @@ function PostRentalContent() {
     }));
   };
 
-  const handleAddImageByLink = () => {
-    if (!imageLink.trim()) return;
-    
-    // Simple validation for URL
-    if (!imageLink.startsWith("http")) {
-      toast.error("Vui lòng nhập link hình ảnh hợp lệ (bắt đầu bằng http hoặc https)");
-      return;
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, imageLink.trim()]
-    }));
-    setImageLink("");
-    toast.success("Đã thêm hình ảnh từ link");
-  };
 
   const handleLocationSelect = (lat: number, lng: number, address: string) => {
     const parts = address.split(",").map(p => p.trim());
@@ -334,7 +303,7 @@ function PostRentalContent() {
   };
 
   return (
-    <main className="min-h-screen bg-white flex flex-col pb-32 font-sans selection:bg-blue-100">
+    <main className="min-h-screen bg-white flex flex-col pb-32 font-sans selection:bg-orange-100">
       <Header />
       
       <div className="max-w-[1240px] mx-auto w-full pt-10 px-6">
@@ -380,12 +349,12 @@ function PostRentalContent() {
                   type="button"
                   onClick={() => !isUploading && fileInputRef.current?.click()}
                   aria-label="Tải ảnh lên từ thiết bị"
-                  className={`aspect-square border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 hover:border-blue-300 transition-all cursor-pointer group shadow-sm ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
+                  className={`aspect-square border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 hover:border-orange-300 transition-all cursor-pointer group shadow-sm ${isUploading ? 'opacity-50 cursor-wait' : ''}`}
                 >
                   {isUploading ? (
-                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                    <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mb-2"></div>
                   ) : (
-                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-blue-500 mb-2" />
+                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-orange-500 mb-2" />
                   )}
                   <span className="text-[11px] font-bold text-gray-500 uppercase tracking-tighter">
                     {isUploading ? "Đang tải..." : "Thêm ảnh"}
@@ -394,39 +363,6 @@ function PostRentalContent() {
               </div>
               <p className="text-[11px] text-gray-400 font-medium">Tối đa 10MB mỗi file. Khuyên dùng ít nhất 3 ảnh thật của phòng.</p>
 
-              <div className="mt-4 p-5 bg-blue-50/50 border border-blue-100 rounded-3xl space-y-3">
-                <label className="text-[11px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
-                  <LinkIcon className="w-3.5 h-3.5" />
-                  Thêm ảnh bằng link (URL)
-                </label>
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    id="imageLink"
-                    placeholder="Dán link ảnh (hãy sao chép địa chỉ liên kết) từ Facebook, ...."
-                    aria-label="Link hình ảnh từ bên ngoài"
-                    className="flex-1 px-4 py-3 bg-white border border-blue-100 rounded-xl text-sm font-semibold text-gray-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all"
-                    value={imageLink}
-                    onChange={(e) => setImageLink(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddImageByLink();
-                      }
-                    }}
-                  />
-                  <button 
-                    type="button"
-                    onClick={handleAddImageByLink}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 whitespace-nowrap"
-                  >
-                    Thêm link
-                  </button>
-                </div>
-                <p className="text-[10px] font-bold text-blue-400 mt-1 italic">
-                  * Lưu ý: Hãy đảm bảo link hình ảnh là link trực tiếp và có thể truy cập công khai.
-                </p>
-              </div>
             </section>
 
             {/* 2. Địa chỉ & Bản đồ */}
@@ -444,14 +380,14 @@ function PostRentalContent() {
                       type="text" 
                       id="addressSearch"
                       placeholder="Nhập địa chỉ bạn muốn tìm kiếm (Nhấn Enter để tìm)"
-                      className={`w-full pl-11 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all placeholder:text-gray-400 shadow-sm font-medium ${isSearching ? 'opacity-70' : ''}`}
+                      className={`w-full pl-11 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 transition-all placeholder:text-gray-400 shadow-sm font-medium ${isSearching ? 'opacity-70' : ''}`}
                       value={formData.address}
                       onChange={(e) => setFormData({...formData, address: e.target.value})}
                     />
-                    <Search className={`absolute left-4 top-3.5 w-4 h-4 transition-colors ${isSearching ? 'text-blue-500 animate-pulse' : 'text-gray-400'}`} />
+                    <Search className={`absolute left-4 top-3.5 w-4 h-4 transition-colors ${isSearching ? 'text-orange-500 animate-pulse' : 'text-gray-400'}`} />
                     {isSearching && (
                       <div className="absolute right-4 top-3.5">
-                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     )}
                   </form>
@@ -466,7 +402,7 @@ function PostRentalContent() {
                       type="text" 
                       id="displayAddress"
                       placeholder="Nhập số nhà và tên đường..."
-                      className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-blue-500 transition-all shadow-sm font-medium"
+                      className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-orange-500 transition-all shadow-sm font-medium"
                       value={formData.displayAddress}
                       onChange={(e) => setFormData({...formData, displayAddress: e.target.value})}
                     />
@@ -485,7 +421,7 @@ function PostRentalContent() {
                     />
                   </section>
                 </div>
-                <p className="text-[11px] text-blue-600 font-bold cursor-pointer hover:underline flex items-center gap-1">
+                <p className="text-[11px] text-orange-600 font-bold cursor-pointer hover:underline flex items-center gap-1">
                   <Info className="w-3 h-3" />
                   (Sửa lại địa chỉ này nếu trên bản đồ chưa hiển thị đúng vị trí)
                 </p>
@@ -498,23 +434,58 @@ function PostRentalContent() {
                     type="text" 
                     id="postTitle"
                     placeholder="Ví dụ: 126 Hàm Nghi - Thạc Gián"
-                    className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-blue-500 transition-all shadow-sm font-semibold"
+                    className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-orange-500 transition-all shadow-sm font-semibold"
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
                   />
-                  <p className="text-[11px] text-blue-400 italic font-bold">(Gợi ý đặt tên: Căn hộ 3PN gần biển, Nhà Trọ An Bình,...)</p>
+                  <p className="text-[11px] text-orange-400 italic font-bold">(Gợi ý đặt tên: Căn hộ 3PN gần biển, Nhà Trọ An Bình,...)</p>
                 </section>
 
                 <section className="space-y-4">
                    <label className="text-[13px] font-bold text-gray-800">
                     <span className="text-red-500">*</span> Loại hình
                   </label>
-                  <div className="flex items-center gap-10">
+                  <div className="flex flex-wrap items-center gap-8">
                     <label className="flex items-center gap-3 cursor-pointer group">
                       <div className="relative flex items-center justify-center">
-                        <input type="radio" id="category_rental" name="type" defaultChecked className="peer appearance-none w-6 h-6 border-2 border-gray-200 rounded-full checked:border-blue-600 checked:border-[6px] transition-all" />
+                        <input 
+                          type="radio" 
+                          id="category_rental" 
+                          name="type" 
+                          checked={formData.category === "Thuê trọ"} 
+                          onChange={() => setFormData({...formData, category: "Thuê trọ"})}
+                          className="peer appearance-none w-6 h-6 border-2 border-gray-200 rounded-full checked:border-orange-600 checked:border-[6px] transition-all" 
+                        />
                       </div>
-                      <span className="text-[13px] font-bold text-gray-600 peer-checked:text-blue-600 transition-colors">Thuê trọ</span>
+                      <span className="text-[13px] font-bold text-gray-600 peer-checked:text-orange-600 transition-colors">Phòng trọ</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div className="relative flex items-center justify-center">
+                        <input 
+                          type="radio" 
+                          id="category_house" 
+                          name="type" 
+                          checked={formData.category === "Nhà nguyên căn"} 
+                          onChange={() => setFormData({...formData, category: "Nhà nguyên căn"})}
+                          className="peer appearance-none w-6 h-6 border-2 border-gray-200 rounded-full checked:border-orange-600 checked:border-[6px] transition-all" 
+                        />
+                      </div>
+                      <span className="text-[13px] font-bold text-gray-600 peer-checked:text-orange-600 transition-colors">Nhà nguyên căn</span>
+                    </label>
+
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <div className="relative flex items-center justify-center">
+                        <input 
+                          type="radio" 
+                          id="category_apartment" 
+                          name="type" 
+                          checked={formData.category === "Căn hộ / Dịch vụ"} 
+                          onChange={() => setFormData({...formData, category: "Căn hộ / Dịch vụ"})}
+                          className="peer appearance-none w-6 h-6 border-2 border-gray-200 rounded-full checked:border-orange-600 checked:border-[6px] transition-all" 
+                        />
+                      </div>
+                      <span className="text-[13px] font-bold text-gray-600 peer-checked:text-orange-600 transition-colors">Căn hộ</span>
                     </label>
                   </div>
                 </section>
@@ -530,7 +501,7 @@ function PostRentalContent() {
                     searchCounter={formData.searchCounter}
                   />
                   <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] bg-gray-900/80 backdrop-blur-sm text-white px-4 py-2 rounded-full text-[10px] font-semibold flex items-center gap-2 pointer-events-none whitespace-nowrap">
-                    <MapPin className="w-3 h-3 text-blue-400" />
+                    <MapPin className="w-3 h-3 text-orange-400" />
                     Nhấp vào bản đồ để chọn vị trí chính xác
                   </div>
                 </div>
@@ -539,24 +510,8 @@ function PostRentalContent() {
 
             {/* 3. Tiện nghi / Đặc điểm */}
             <section className="space-y-6 pt-4 border-t border-gray-50 mt-4">
-              <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Tiện nghi / Đặc điểm</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-10">
-                {DEFAULT_AMENITIES.map((item, idx) => (
-                  <label key={item} htmlFor={`amenity_${idx}`} className="flex items-center gap-3 cursor-pointer group">
-                    <div className="relative flex items-center justify-center">
-                      <input 
-                        type="checkbox" 
-                        id={`amenity_${idx}`}
-                        className="peer appearance-none w-5 h-5 border-2 border-gray-200 rounded-md checked:bg-blue-600 checked:border-blue-600 transition-all cursor-pointer"
-                        checked={formData.amenities.includes(item)}
-                        onChange={() => toggleAmenity(item)}
-                      />
-                      <CheckCircle className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
-                    </div>
-                    <span className="text-[13px] font-semibold text-gray-600 group-hover:text-blue-600 transition-colors">{item}</span>
-                  </label>
-                ))}
-              </div>
+              <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Cấu trúc phòng</h2>
+
 
               <div className="pt-6 border-t border-gray-100 flex items-center gap-6">
                 <div className="flex items-center gap-3 shrink-0">
@@ -565,7 +520,7 @@ function PostRentalContent() {
                       type="checkbox" 
                       checked
                       readOnly
-                      className="peer appearance-none w-5 h-5 border-2 border-blue-600 bg-blue-600 rounded-md transition-all cursor-default"
+                      className="peer appearance-none w-5 h-5 border-2 border-orange-600 bg-orange-600 rounded-md transition-all cursor-default"
                     />
                     <CheckCircle className="absolute w-3.5 h-3.5 text-white pointer-events-none" />
                   </div>
@@ -580,7 +535,7 @@ function PostRentalContent() {
                     id="bedrooms"
                     min="1"
                     placeholder="1"
-                    className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-blue-500 transition-all shadow-sm"
+                    className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-orange-500 transition-all shadow-sm"
                     value={formData.bedrooms}
                     onChange={(e) => setFormData({...formData, bedrooms: e.target.value})}
                   />
@@ -600,14 +555,14 @@ function PostRentalContent() {
                     type="number" 
                     id="price"
                     placeholder="Nhập giá..."
-                    className="w-full pl-4 pr-14 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-blue-500 transition-all shadow-sm"
+                    className="w-full pl-4 pr-14 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-orange-500 transition-all shadow-sm"
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
                   />
                   <span className="absolute right-4 top-3.5 text-[11px] text-gray-400 font-bold uppercase tracking-tighter">/tháng</span>
                 </div>
                 {formData.price && (
-                  <p className="text-[11px] text-blue-600 font-bold mt-1 pl-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <p className="text-[11px] text-orange-600 font-bold mt-1 pl-1 animate-in fade-in slide-in-from-top-1 duration-200">
                     Số tiền: {Number(formData.price).toLocaleString("vi-VN")} VNĐ/ tháng
                   </p>
                 )}
@@ -619,7 +574,7 @@ function PostRentalContent() {
                     type="number" 
                     id="areaSize"
                     placeholder="Ví dụ: 25"
-                    className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-blue-500 transition-all shadow-sm"
+                    className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-orange-500 transition-all shadow-sm"
                     value={formData.areaSize}
                     onChange={(e) => setFormData({...formData, areaSize: e.target.value})}
                   />
@@ -635,14 +590,14 @@ function PostRentalContent() {
                     type="date" 
                     id="availableDate"
                     value={formData.availableDate}
-                    className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-blue-500 transition-all shadow-sm appearance-none"
+                    className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-orange-500 transition-all shadow-sm appearance-none"
                     onChange={(e) => setFormData({...formData, availableDate: e.target.value})}
                   />
                   <Calendar className="absolute right-4 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
               </section>
               <section className="space-y-2">
-                <label htmlFor="phone" className="text-[13px] font-bold text-gray-800">
+                <label htmlFor="phone" className="text-[13px) font-bold text-gray-800">
                   <span className="text-red-500">*</span> Số điện thoại
                 </label>
                 <div className="relative">
@@ -650,7 +605,7 @@ function PostRentalContent() {
                     type="tel" 
                     id="phone"
                     placeholder="0353..."
-                    className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-blue-500 transition-all shadow-sm"
+                    className="w-full pl-4 pr-10 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-orange-500 transition-all shadow-sm"
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   />
@@ -662,7 +617,7 @@ function PostRentalContent() {
             <section className="mt-8 space-y-4">
               <div className="flex items-center justify-between">
                 <label htmlFor="note" className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+                  <div className="w-1.5 h-6 bg-orange-600 rounded-full"></div>
                   Ghi chú khác
                 </label>
                 <button 
@@ -671,7 +626,7 @@ function PostRentalContent() {
                     const template = `- Giá điện: \n- Giá nước: \n- Phí dịch vụ: \n- Tiền cọc: \n- Thời hạn thuê tối thiểu: \n- Giờ giấc: \n- Nội quy: `;
                     setFormData({...formData, note: template});
                   }}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all border border-blue-100"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-orange-50 text-orange-600 rounded-xl text-xs font-bold hover:bg-orange-100 transition-all border border-orange-100"
                 >
                   <ScrollText className="w-4 h-4" />
                   Sử dụng mẫu
@@ -680,7 +635,7 @@ function PostRentalContent() {
               <textarea 
                 id="note"
                 placeholder="Nhập các thông tin về giá điện, nước, phí dịch vụ (quản lý, vệ sinh), điều khoản hợp đồng (tiền cọc, chính sách hoàn cọc), thời hạn thuê tối thiểu, giờ giấc sinh hoạt (giờ đóng/mở cửa), quy định sử dụng (nuôi thú cưng, nấu ăn, tổ chức tiệc) và các lưu ý quan trọng khác."
-                className="w-full p-6 bg-white border border-gray-200 rounded-3xl text-sm text-gray-900 outline-none focus:border-blue-500 transition-all shadow-sm min-h-[150px] leading-relaxed"
+                className="w-full p-6 bg-white border border-gray-200 rounded-3xl text-sm text-gray-900 outline-none focus:border-orange-500 transition-all shadow-sm min-h-[150px] leading-relaxed"
                 value={formData.note}
                 onChange={(e) => setFormData({...formData, note: e.target.value})}
               />
@@ -695,17 +650,17 @@ function PostRentalContent() {
                       <CheckCircle className="w-7 h-7 text-green-500" />
                       Đăng bài
                     </h3>
-                    <div className="flex flex-col gap-1 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm inline-block">
+                    <div className="flex flex-col gap-1 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
                       <p className="text-[13px] font-bold text-gray-600 mb-1">Chọn thời gian đăng:</p>
-                      <div className="flex items-center gap-2 text-blue-600 font-bold text-sm">
-                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                      <div className="flex items-center gap-2 text-orange-600 font-bold text-sm">
+                        <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse" />
                         Đăng tin miễn phí
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-start gap-3 p-4 bg-white/60 rounded-xl border border-white/50">
-                    <Info className="w-5 h-5 text-blue-500 mt-1 shrink-0" />
+                    <Info className="w-5 h-5 text-orange-500 mt-1 shrink-0" />
                     <p className="text-sm font-medium text-gray-500 leading-relaxed">
                       Tin của bạn sẽ được duyệt trong vòng sớm thôi. Vui lòng đảm bảo thông tin liên hệ là chính xác để người thuê có thể kết nối ngay lập tức.
                     </p>

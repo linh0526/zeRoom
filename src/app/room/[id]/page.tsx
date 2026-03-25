@@ -157,7 +157,7 @@ async function RoomDetailContent({ id }: { id: string }) {
                 </h1>
                 {room.user?.isVerified && (
                   <div className="group relative">
-                    <ShieldCheck className="w-8 h-8 text-blue-600 fill-blue-50" />
+                    <ShieldCheck className="w-8 h-8 text-orange-600 fill-orange-50" />
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl">
                       Chính chủ xác minh
                     </div>
@@ -165,16 +165,16 @@ async function RoomDetailContent({ id }: { id: string }) {
                 )}
               </div>
               <p className="flex items-center gap-2 text-gray-500 font-medium">
-                <MapPin className="w-5 h-5 text-blue-500" />
+                <MapPin className="w-5 h-5 text-orange-500" />
                 {cleanAddress(room.address)}
               </p>
             </div>
             
-            <div className="md:text-right bg-blue-50 px-8 py-4 rounded-[32px] border border-blue-100/50">
-              <div className="text-3xl font-black text-blue-600">
+            <div className="md:text-right bg-orange-50 px-8 py-4 rounded-[32px] border border-orange-100/50">
+              <div className="text-3xl font-black text-orange-600">
                 {room.price.toLocaleString("vi-VN")}
               </div>
-              <div className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mt-1">VNĐ / THÁNG</div>
+              <div className="text-orange-400 text-[10px] font-black uppercase tracking-[0.2em] mt-1">VNĐ / THÁNG</div>
             </div>
           </div>
 
@@ -223,14 +223,14 @@ async function RoomDetailContent({ id }: { id: string }) {
                 <p className="text-base font-black text-green-900 tracking-tight">{readyDate}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 px-6 py-4 bg-blue-50 rounded-[24px] border border-blue-100/50 transition-all hover:bg-blue-100/30">
+            <div className="flex items-center gap-4 px-6 py-4 bg-orange-50 rounded-[24px] border border-orange-100/50 transition-all hover:bg-orange-100/30">
               <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                <Phone className="w-6 h-6 text-blue-600" />
+                <Phone className="w-6 h-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-[10px] text-blue-600 font-black uppercase tracking-[0.1em] mb-0.5">Số điện thoại / Zalo</p>
-                <p className="text-base font-black text-blue-900 tracking-wide">{room.phone}</p>
-                <p className="text-[10px] text-blue-400 font-medium mt-0.5 italic">"Đừng quên bảo bạn tìm thấy tin từ zeRoom nhé! ✨"</p>
+                <p className="text-[10px] text-orange-600 font-black uppercase tracking-[0.1em] mb-0.5">Số điện thoại / Zalo</p>
+                <p className="text-base font-black text-gray-900 tracking-wide">{room.phone}</p>
+                <p className="text-[10px] text-orange-400 font-medium mt-0.5 italic">"Đừng quên bảo bạn tìm thấy tin từ zeRoom nhé! ✨"</p>
               </div>
             </div>
           </div>
@@ -238,7 +238,7 @@ async function RoomDetailContent({ id }: { id: string }) {
           {/* Amenities */}
           <div className="space-y-6 mb-12">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+              <div className="w-1.5 h-6 bg-orange-600 rounded-full"></div>
               Tiện ghi & Đặc điểm nổi bật
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8 bg-gray-50/50 p-8 rounded-[32px] border border-gray-100">
@@ -261,10 +261,10 @@ async function RoomDetailContent({ id }: { id: string }) {
           {room.note && (
             <div className="mt-12 space-y-6">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+                <div className="w-1.5 h-6 bg-orange-600 rounded-full"></div>
                 Ghi chú khác
               </h2>
-              <div className="bg-blue-50/30 border border-blue-100/50 rounded-[32px] p-8">
+              <div className="bg-orange-50/30 border border-orange-100/50 rounded-[32px] p-8">
                 <p className="text-sm text-gray-700 leading-8 whitespace-pre-wrap font-medium">
                   {room.note}
                 </p>

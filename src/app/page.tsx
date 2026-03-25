@@ -13,7 +13,7 @@ const MapComponent = dynamic(() => import("@/components/MapComponent"), {
   loading: () => (
     <div className="w-full h-full bg-gray-50 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
         <p className="text-gray-500 font-medium animate-pulse text-sm">Đang tải bản đồ...</p>
       </div>
     </div>
@@ -33,7 +33,7 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1000] w-[90%] max-w-2xl bg-white rounded-2xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
       <div className="flex justify-between items-center mb-3 px-1">
         <h3 className="font-bold text-gray-800 text-sm line-clamp-1">{room.title}</h3>
-        <button onClick={onClose} aria-label="Đóng bảng xem trước" className="p-1 hover:bg-gray-100 text-gray-500 hover:text-blue-600 rounded-full transition-colors shrink-0">
+        <button onClick={onClose} aria-label="Đóng bảng xem trước" className="p-1 hover:bg-gray-100 text-gray-500 hover:text-orange-600 rounded-full transition-colors shrink-0">
           <X className="w-5 h-5" />
         </button>
       </div>
@@ -45,12 +45,13 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
             fill
             sizes="(max-width: 768px) 90vw, (max-width: 1200px) 700px, 800px"
             className="object-contain" 
+            unoptimized={images[currentIdx]?.includes("scontent")}
           />
         )}
         {!images[currentIdx] && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50">
-            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-blue-200"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-orange-200"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             </div>
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Không có ảnh</p>
           </div>
@@ -75,9 +76,18 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
                key={idx} 
                onClick={() => setCurrentIdx(idx)}
                aria-label={`Xem ảnh thứ ${idx + 1}`}
-               className={`relative w-28 h-20 flex-shrink-0 rounded-lg overflow-hidden transition-all duration-300 ${currentIdx === idx ? 'ring-2 ring-blue-600 ring-offset-2 opacity-100' : 'opacity-40 hover:opacity-100'}`}
+               className={`relative w-28 h-20 flex-shrink-0 rounded-lg overflow-hidden transition-all duration-300 ${currentIdx === idx ? 'ring-2 ring-orange-600 ring-offset-2 opacity-100' : 'opacity-40 hover:opacity-100'}`}
              >
-                {img && <Image src={img} alt={`Ảnh thứ ${idx + 1} của ${room.title}`} fill sizes="112px" className="object-cover" />}
+                {img && (
+                  <Image 
+                    src={img} 
+                    alt={`Ảnh thứ ${idx + 1} của ${room.title}`} 
+                    fill 
+                    sizes="112px" 
+                    className="object-cover" 
+                    unoptimized={img?.includes("scontent")}
+                  />
+                )}
              </button>
           ))}
         </div>
@@ -85,7 +95,7 @@ function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
 
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
         <div className="flex flex-col">
-          <p className="text-xl font-black text-blue-600">
+          <p className="text-xl font-black text-orange-600">
             {room.price >= 1000000 ? `${(room.price / 1000000).toLocaleString("vi-VN")} Tr₫` : `${room.price.toLocaleString("vi-VN")}đ`}
           </p>
           <div className="flex items-center gap-2">
@@ -176,6 +186,28 @@ export default function Home() {
     // Lọc theo diện tích
     if (filters.minArea !== undefined) {
       filtered = filtered.filter(r => (r.areaSize || 0) >= filters.minArea);
+    }
+
+    // Lọc theo số phòng ngủ
+    if (filters.bedrooms && filters.bedrooms !== "all") {
+      const bedroomsNum = filters.bedrooms.includes("+") 
+        ? parseInt(filters.bedrooms) 
+        : parseInt(filters.bedrooms);
+      
+      if (filters.bedrooms.includes("+")) {
+        filtered = filtered.filter(r => (r.bedrooms || 0) >= bedroomsNum);
+      } else {
+        filtered = filtered.filter(r => (r.bedrooms || 0) === bedroomsNum);
+      }
+    }
+
+    // Sắp xếp
+    if (filters.sortBy === "newest") {
+      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else if (filters.sortBy === "price-asc") {
+      filtered.sort((a, b) => a.price - b.price);
+    } else if (filters.sortBy === "price-desc") {
+      filtered.sort((a, b) => b.price - a.price);
     }
     
     setRooms(filtered);

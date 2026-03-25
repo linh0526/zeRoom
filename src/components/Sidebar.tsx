@@ -1,10 +1,11 @@
 "use client";
 
-import { Search, SlidersHorizontal, MapPin, Home, Wifi, Wind, ShieldCheck, Car, X, ChevronLeft } from "lucide-react";
+import { Search, SlidersHorizontal, MapPin, Home, Wifi, Wind, ShieldCheck, Car, X, ChevronLeft, Navigation, Clock, ChevronRight, Filter } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getRelativeTime } from "@/lib/formatDate";
+import FilterModal from "./FilterModal";
 import { cleanAddress } from "@/lib/addressUtils";
 
 interface Room {
@@ -34,22 +35,25 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
   const [maxPrice, setMaxPrice] = useState(15000000);
   const [minArea, setMinArea] = useState(0);
   const [category, setCategory] = useState("all");
-  const [showFilters, setShowFilters] = useState(true);
+  const [sortBy, setSortBy] = useState("newest");
+  const [bedrooms, setBedrooms] = useState("all");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
-  const handlePriceChange = (min: number, max: number) => {
-    setMinPrice(min);
-    setMaxPrice(max);
-    onFilterChange({ minPrice: min, maxPrice: max, minArea, category });
+  const handleApplyFilters = (newFilters: any) => {
+    setMinPrice(newFilters.minPrice);
+    setMaxPrice(newFilters.maxPrice);
+    setMinArea(newFilters.minArea);
+    setCategory(newFilters.category);
+    setSortBy(newFilters.sortBy);
+    setBedrooms(newFilters.bedrooms);
+    
+    onFilterChange({ ...newFilters, search });
   };
 
-  const handleAreaChange = (val: number) => {
-    setMinArea(val);
-    onFilterChange({ minPrice, maxPrice, minArea: val, category });
-  };
-
-  const handleCategoryChange = (val: string) => {
-    setCategory(val);
-    onFilterChange({ minPrice, maxPrice, minArea, category: val });
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    onFilterChange({ minPrice, maxPrice, minArea, category, sortBy, bedrooms, search: val });
   };
 
   return (
@@ -64,141 +68,105 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                 <Search className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
                 <input 
                   type="text" 
-                  placeholder="Bạn muốn đến đâu?" 
+                  placeholder="Bạn muốn tìm gì?" 
                   aria-label="Tìm kiếm địa điểm"
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-none rounded-xl text-sm text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                  onChange={(e) => onFilterChange({ minPrice, maxPrice, minArea, category, search: e.target.value })}
+                  value={search}
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-none rounded-xl text-sm text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                  onChange={(e) => handleSearchChange(e.target.value)}
                 />
               </div>
               <button 
-                onClick={() => setShowFilters(!showFilters)}
-                aria-label="Ẩn hiện bộ lọc"
-                className={`p-2.5 rounded-xl transition-all border ${showFilters ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' : 'bg-gray-50 text-gray-500 border-transparent hover:bg-gray-100'}`}
+                onClick={() => setIsModalOpen(true)}
+                className={`p-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2 ${isModalOpen || category !== "all" || bedrooms !== "all" ? 'bg-orange-500 text-white shadow-orange-100' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
+                aria-label="Mở bộ lọc"
               >
                 <SlidersHorizontal className="w-5 h-5" />
+                <span className="text-xs font-bold whitespace-nowrap hidden sm:block">Lọc</span>
+                {(category !== "all" || bedrooms !== "all") && (
+                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                )}
               </button>
             </div>
-
-            {showFilters && (
-              <div className="space-y-6 animate-in slide-in-from-top-2 duration-300">
-                {/* Category Filter */}
-                <div className="space-y-3">
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Loại hình</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { id: "all", label: "Tất cả" },
-                      { id: "Căn hộ / Dịch vụ", label: "Căn hộ / Dịch vụ" },
-                      { id: "Thuê trọ", label: "Phòng trọ" }
-                    ].map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => handleCategoryChange(item.id)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${category === item.id ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100' : 'bg-white text-gray-600 border-gray-100 hover:border-blue-200'}`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Price Filter */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Ngân sách</h3>
-                    <span className="text-xs text-blue-600 font-bold">
-                      Dưới {maxPrice.toLocaleString("vi-VN")}đ
-                    </span>
-                  </div>
-                  <input 
-                    type="range" 
-                    min="0" 
-                    max="15000000" 
-                    aria-label="Thanh trượt ngân sách tối đa"
-                    step="500000"
-                    value={maxPrice}
-                    onChange={(e) => handlePriceChange(minPrice, Number(e.target.value))}
-                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                  />
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <div className="relative">
-                        <input 
-                          type="number" 
-                          value={minPrice}
-                          aria-label="Giá thuê thấp nhất"
-                          onChange={(e) => handlePriceChange(Number(e.target.value), maxPrice)}
-                          className="w-full pl-3 pr-7 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 outline-none focus:border-blue-500 transition-all font-bold"
-                        />
-                        <span className="absolute right-2 top-2 text-[10px] text-gray-400 font-bold">đ</span>
-                      </div>
-                    </div>
-                    <div className="text-gray-300">—</div>
-                    <div className="flex-1">
-                      <div className="relative">
-                        <input 
-                          type="number" 
-                          value={maxPrice}
-                          aria-label="Giá thuê cao nhất"
-                          onChange={(e) => handlePriceChange(minPrice, Number(e.target.value))}
-                          className="w-full pl-3 pr-7 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-900 outline-none focus:border-blue-500 transition-all font-bold"
-                        />
-                        <span className="absolute right-2 top-2 text-[10px] text-gray-400 font-bold">đ</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Area Filter */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Diện tích</h3>
-                    <span className="text-xs text-blue-600 font-bold">
-                      Từ {minArea} m²
-                    </span>
-                  </div>
-                  <input 
-                    type="range" 
-                    min="0" 
-                    max="100" 
-                    aria-label="Thanh trượt diện tích phù hợp"
-                    step="5"
-                    value={minArea}
-                    onChange={(e) => handleAreaChange(Number(e.target.value))}
-                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                  />
-                  <div className="flex justify-between text-[10px] text-gray-400 font-bold">
-                    <span>0 m²</span>
-                    <span>100+ m²</span>
-                  </div>
-                </div>
+            
+            {/* Quick Chips categories */}
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2 pb-1 overflow-x-auto no-scrollbar">
+                <span className="text-[10px] font-black text-gray-600 tracking-widest shrink-0 flex items-center gap-1">
+                  Loại:
+                </span>
+                <button 
+                  onClick={() => handleApplyFilters({ minPrice, maxPrice, minArea, category: category === "Thuê trọ" ? "all" : "Thuê trọ", sortBy, bedrooms })}
+                  className={`px-4 py-2 rounded-full text-[10px] font-black tracking-widest whitespace-nowrap transition-all border active:scale-95 ${category === "Thuê trọ" ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
+                >
+                  Phòng trọ
+                </button>
+                <button 
+                  onClick={() => handleApplyFilters({ minPrice, maxPrice, minArea, category: category === "Nhà nguyên căn" ? "all" : "Nhà nguyên căn", sortBy, bedrooms })}
+                  className={`px-4 py-2 rounded-full text-[10px] font-black tracking-widest whitespace-nowrap transition-all border active:scale-95 ${category === "Nhà nguyên căn" ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
+                >
+                  Nhà nguyên căn
+                </button>
+                <button 
+                  onClick={() => handleApplyFilters({ minPrice, maxPrice, minArea, category: category === "Căn hộ / Dịch vụ" ? "all" : "Căn hộ / Dịch vụ", sortBy, bedrooms })}
+                  className={`px-4 py-2 rounded-full text-[10px] font-black tracking-widest whitespace-nowrap transition-all border active:scale-95 ${category === "Căn hộ / Dịch vụ" ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
+                >
+                  Căn hộ
+                </button>
               </div>
-            )}
 
+              {/* Sorting Row */}
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                <span className="text-[10px] font-black text-gray-600 tracking-widest shrink-0 flex items-center gap-1">
+                  Sắp xếp:
+                </span>
+                {[
+                  { id: "newest", label: "Mới nhất" },
+                  { id: "price-asc", label: "Giá rẻ nhất" },
+                  { id: "price-desc", label: "Cao cấp nhất" }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleApplyFilters({ minPrice, maxPrice, minArea, category, sortBy: item.id, bedrooms })}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap border ${sortBy === item.id ? 'bg-orange-50 border-orange-200 text-orange-600 shadow-sm' : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'}`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <FilterModal 
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onApply={handleApplyFilters}
+              initialFilters={{ minPrice, maxPrice, minArea, category, sortBy, bedrooms }}
+            />
 
           </>
         ) : (
           <div className="space-y-4 animate-in slide-in-from-left-4 fade-in duration-300">
-            <button 
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition-colors"
-              onClick={() => onRoomSelect?.(null)}
-            >
-              <ChevronLeft className="w-4 h-4" /> Quay lại bộ lọc
-            </button>
             <div className="relative w-full h-40 rounded-xl overflow-hidden mb-2 shadow-sm">
-              <Image src={selectedRoom.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2340&auto=format&fit=crop'} alt={selectedRoom.title} fill sizes="(max-width: 768px) 100vw, 448px" className="object-cover" />
+              <Image 
+                src={selectedRoom.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2340&auto=format&fit=crop'} 
+                alt={selectedRoom.title} 
+                fill 
+                sizes="(max-width: 768px) 100vw, 448px" 
+                className="object-cover" 
+                unoptimized={selectedRoom.images?.[0]?.includes("scontent") || false}
+              />
             </div>
             <h2 className="text-lg font-bold text-gray-900 leading-tight">{selectedRoom.title}</h2>
             <p className="flex items-start gap-1.5 text-xs text-gray-500 leading-relaxed">
-              <MapPin className="w-4 h-4 mt-0.5 text-blue-500 shrink-0" />
+              <MapPin className="w-4 h-4 mt-0.5 text-orange-500 shrink-0" />
               <span>{selectedRoom.address}</span>
             </p>
             <div className="flex items-center justify-between mt-2">
-              <div className="text-2xl font-bold text-blue-600 select-none">
+              <div className="text-2xl font-bold text-orange-600 select-none">
                 {(selectedRoom.price / 1000000).toLocaleString("vi-VN")} Tr₫
               </div>
               <Link 
                 href={`/room/${selectedRoom.slug || (selectedRoom._id || selectedRoom.id)}`}
-                className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
+                className="px-4 py-2 bg-orange-500 text-white rounded-xl font-bold text-xs hover:bg-orange-700 transition-all shadow-md shadow-orange-100"
               >
                 Xem chi tiết
               </Link>
@@ -220,10 +188,10 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-2xl mt-4 border border-blue-100/50">
-              <span className="text-blue-600 text-xs font-semibold uppercase block mb-1">Liên hệ</span>
-              <span className="font-bold text-blue-800 text-lg tracking-wide">{selectedRoom.phone || "0353044770"}</span>
-              <p className="text-[9px] text-blue-500/70 font-medium mt-1 italic leading-tight">"Nhắn với chủ trọ là bạn thấy tin từ zeRoom nhé! 💙"</p>
+            <div className="bg-orange-50 p-4 rounded-2xl mt-4 border border-orange-100/50">
+              <span className="text-orange-600 text-xs font-semibold uppercase block mb-1">Liên hệ</span>
+              <span className="font-bold text-orange-800 text-lg tracking-wide">{selectedRoom.phone || "0353044770"}</span>
+              <p className="text-[9px] text-orange-500/70 font-medium mt-1 italic leading-tight">"Nhắn với chủ trọ là bạn thấy tin từ zeRoom nhé! 🧡"</p>
             </div>
           </div>
         )}
@@ -259,7 +227,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                     if (sidebar) sidebar.scrollTop = 0;
                   }
                 }}
-                className={`flex flex-col gap-3 p-3 rounded-2xl transition-all border cursor-pointer ${selectedRoom?._id === room._id ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50 border-gray-100 bg-white"} shadow-sm group`}
+                className={`flex flex-col gap-3 p-3 rounded-2xl transition-all border cursor-pointer ${selectedRoom?._id === room._id ? "bg-orange-50 border-orange-200" : "hover:bg-gray-50 border-gray-100 bg-white"} shadow-sm group`}
               >
                 <div className="flex gap-4">
                   <div className="w-32 h-24 rounded-xl overflow-hidden flex-shrink-0 relative shadow-sm bg-gray-100 italic">
@@ -274,6 +242,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                         fill
                         sizes="128px"
                         className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                        unoptimized={room.images[0]?.includes("scontent")}
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
@@ -284,19 +253,19 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                   <div className="flex flex-col justify-between py-0.5 flex-1 min-w-0">
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <h4 className="text-sm font-bold text-gray-800 line-clamp-2 leading-tight group-hover:text-blue-600 flex-1">{room.title}</h4>
+                        <h4 className="text-sm font-bold text-gray-800 line-clamp-2 leading-tight group-hover:text-orange-600 flex-1">{room.title}</h4>
                         {room.user?.isVerified && (
-                          <ShieldCheck className="w-4 h-4 text-blue-600 fill-blue-50 shrink-0" />
+                          <ShieldCheck className="w-4 h-4 text-orange-600 fill-orange-50 shrink-0" />
                         )}
                       </div>
                       <p className="text-[10px] text-gray-400 line-clamp-1 flex items-center gap-0.5">
-                        <MapPin className="w-2.5 h-2.5 shrink-0 text-blue-500/70" />
+                        <MapPin className="w-2.5 h-2.5 shrink-0 text-orange-500/70" />
                         {cleanAddress(room.address).split(",")[0]}
                       </p>
                     </div>
                     <div className="flex items-end justify-between mt-auto">
                       <div className="flex flex-col">
-                        <p className="text-sm font-black text-blue-600">
+                        <p className="text-sm font-black text-orange-600">
                           {room.price >= 1000000 ? `${(room.price / 1000000).toLocaleString("vi-VN")} Tr₫` : `${room.price.toLocaleString("vi-VN")}đ`}
                         </p>
                         <p className="text-[10px] text-gray-400 font-medium italic">
@@ -306,7 +275,7 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                       <Link 
                         href={`/room/${room.slug || room._id}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="px-3 py-1.5 text-[10px] font-bold text-blue-600 bg-white border border-blue-100 rounded-lg hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all duration-300 shadow-sm"
+                        className="px-3 py-1.5 text-[10px] font-bold text-orange-600 bg-white border border-orange-100 rounded-lg hover:bg-orange-600 hover:text-white hover:border-orange-600 transition-all duration-300 shadow-sm"
                       >
                         Xem chi tiết
                       </Link>

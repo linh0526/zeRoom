@@ -82,7 +82,7 @@ export default function AdminMessagesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-10 h-10 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -92,7 +92,7 @@ export default function AdminMessagesPage() {
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-             <MessageSquare className="w-8 h-8 text-blue-600" />
+             <MessageSquare className="w-8 h-8 text-orange-600" />
              TIN NHẮN KHÁCH HÀNG
           </h1>
           <p className="text-sm font-semibold text-gray-400 mt-1 uppercase tracking-widest">Quản lý phản hồi và yêu cầu hỗ trợ từ người dùng</p>
@@ -112,7 +112,7 @@ export default function AdminMessagesPage() {
             <div 
               key={msg._id} 
               className={`bg-white rounded-[32px] p-8 border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200/40 transition-all group relative overflow-hidden ${
-                msg.status === "unread" ? "border-l-8 border-l-blue-600" : ""
+                msg.status === "unread" ? "border-l-8 border-l-orange-600" : ""
               }`}
             >
               <div className="flex flex-col lg:flex-row gap-8">
@@ -147,7 +147,7 @@ export default function AdminMessagesPage() {
                 <div className="lg:w-2/4 space-y-3">
                    <div className="flex items-center gap-2">
                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                        msg.status === "unread" ? "bg-blue-100 text-blue-600" : 
+                        msg.status === "unread" ? "bg-orange-100 text-orange-600" : 
                         msg.status === "read" ? "bg-gray-100 text-gray-600" : "bg-green-100 text-green-600"
                       }`}>
                         {msg.status === "unread" ? "Chưa đọc" : msg.status === "read" ? "Đã xem" : "Đã xử lý"}
@@ -177,7 +177,7 @@ export default function AdminMessagesPage() {
                   {msg.status === "unread" && (
                     <button 
                       onClick={() => updateStatus(msg._id, "read")}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-600 hover:text-white transition-all font-bold text-[11px] uppercase tracking-widest"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-orange-50 text-orange-600 rounded-2xl hover:bg-orange-600 hover:text-white transition-all font-bold text-[11px] uppercase tracking-widest"
                     >
                       <CheckCircle className="w-4 h-4" />
                       Đã xem

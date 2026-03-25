@@ -44,7 +44,7 @@ export default function AdminReports() {
           <input 
             type="text" 
             placeholder="Tìm theo tin, nội dung..." 
-            className="pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-semibold outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all w-80 shadow-sm"
+            className="pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-semibold outline-none focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500 transition-all w-80 shadow-sm"
           />
           <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-300" />
         </div>
@@ -83,10 +83,10 @@ export default function AdminReports() {
             {/* Middle: Content */}
             <div className="flex-1 space-y-4 pt-1">
               <div>
-                <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-2">Tin bị báo cáo</p>
+                <p className="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em] mb-2">Tin bị báo cáo</p>
                 <h3 className="text-xl font-black text-gray-900 leading-tight flex items-center gap-3">
                   {report.post?.title || "Tin không tồn tại hoặc đã bị xóa"}
-                  <ExternalLink className="w-4 h-4 text-gray-300 cursor-pointer hover:text-blue-500 transition-colors" />
+                  <ExternalLink className="w-4 h-4 text-gray-300 cursor-pointer hover:text-orange-500 transition-colors" />
                 </h3>
               </div>
               <div className="bg-gray-50/80 p-6 rounded-3xl border border-gray-100 relative">
@@ -102,7 +102,7 @@ export default function AdminReports() {
                <button className="w-full flex items-center justify-center gap-2 py-4 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-100">
                   <Trash2 className="w-4 h-4" /> Gỡ tin lập tức
                </button>
-               <button className="w-full flex items-center justify-center gap-2 py-4 bg-white border border-blue-600 text-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-all">
+               <button className="w-full flex items-center justify-center gap-2 py-4 bg-white border border-orange-600 text-orange-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-orange-50 transition-all">
                   <UserCheck className="w-4 h-4" /> Liên hệ xác minh
                </button>
                <button className="w-full flex items-center justify-center gap-2 py-4 bg-gray-50 text-gray-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 hover:text-gray-700 transition-all">
@@ -120,7 +120,7 @@ export default function AdminReports() {
             <h4 className="text-xl font-black mb-2 tracking-tight">Cần giúp đỡ trong quản lý cộng đồng?</h4>
             <p className="text-sm font-medium text-gray-400 max-w-md">Hãy nhớ rằng chính những người dùng tích cực report là yếu tố quan trọng nhất để ZEROOM luôn là website cho thuê tin tưởng nhất.</p>
          </div>
-         <button className="relative z-10 px-10 py-5 bg-blue-600 rounded-3xl font-black uppercase text-xs tracking-[0.2em] shadow-2xl shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+         <button className="relative z-10 px-10 py-5 bg-orange-600 rounded-3xl font-black uppercase text-xs tracking-[0.2em] shadow-2xl shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
             Xem quy tắc xử lý
          </button>
       </div>

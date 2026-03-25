@@ -12,7 +12,7 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
         primary: {
-          DEFAULT: "#3b82f6",
+          DEFAULT: "#f97316", // orange-500
           foreground: "#ffffff",
         },
       },

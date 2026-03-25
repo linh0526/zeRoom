@@ -10,13 +10,13 @@ export default function Header() {
   const [showMenu, setShowMenu] = useState(false);
 
   return (
-    <header className="h-20 border-b border-gray-100 bg-white/80 backdrop-blur-md flex items-center justify-between px-8 z-[1001] sticky top-0">
+    <header className="h-20 border-b border-gray-100 bg-white/80 backdrop-blur-md flex items-center justify-between px-8 z-[500] sticky top-0">
       <div className="flex items-center gap-8">
         <Link href="/" aria-label="zeRoom Home" className="flex items-center gap-8 group transition-all">
           <div className="flex items-center gap-2.5">
             {/* Icon Container */}
             <div className="relative">
-              <div className="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 rotate-[-4deg] group-hover:rotate-0 transition-all duration-300">
+              <div className="w-11 h-11 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20 rotate-[-4deg] group-hover:rotate-0 transition-all duration-300">
                 <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                   <polyline points="9 22 9 12 15 12 15 22" />
@@ -27,12 +27,12 @@ export default function Header() {
             </div>
             
             {/* Text Container */}
-            <div className="flex flex-col -space-y-1.5 hidden sm:flex">
+            <div className="flex flex-col -space-y-1.5 sm:flex">
               <h1 className="text-2xl font-black tracking-tighter text-gray-900 flex items-baseline">
-                ze<span className="text-blue-600">Room</span>
+                ze<span className="text-orange-500">Room</span>
               </h1>
               <div className="flex items-center gap-1.5">
-                <div className="h-[2px] w-4 bg-blue-600/30 rounded-full" />
+                <div className="h-[2px] w-4 bg-orange-500/30 rounded-full" />
                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Smart Living</span>
               </div>
             </div>
@@ -43,7 +43,7 @@ export default function Header() {
       <div className="flex items-center gap-6">
         <Link 
           href="/post" 
-          className="flex items-center gap-2 px-5 sm:px-6 py-2.5 bg-blue-600 text-white rounded-[20px] text-[11px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:bg-blue-700 hover:shadow-blue-500/40 transition-all active:scale-[0.98]"
+          className="flex items-center gap-2 px-5 sm:px-6 py-2.5 bg-orange-500 text-white rounded-[20px] text-[11px] font-black uppercase tracking-widest shadow-xl shadow-orange-500/20 hover:bg-orange-600 hover:shadow-orange-500/40 transition-all active:scale-[0.98]"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:block">Đăng tin ngay</span>
@@ -53,14 +53,14 @@ export default function Header() {
         {session && (
           <Link 
             href="/manage"
-            className="hidden md:flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-gray-500 hover:text-blue-600 transition-colors"
+            className="hidden md:flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-gray-500 hover:text-orange-600 transition-colors"
           >
             <LayoutDashboard className="w-4 h-4" />
             <span>Quản lý bài đăng</span>
           </Link>
         )}
 
-        <Link href="/contact" className="hidden lg:flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-gray-500 hover:text-blue-600 transition-colors">
+        <Link href="/contact" className="hidden lg:flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-gray-500 hover:text-orange-600 transition-colors">
           <PhoneCall className="w-4 h-4" />
           <span>Liên hệ</span>
         </Link>
@@ -70,9 +70,9 @@ export default function Header() {
         {!session ? (
           <button 
             onClick={() => signIn()}
-            className="flex items-center gap-3 px-5 py-2.5 bg-gray-900 text-white rounded-[20px] hover:bg-gray-800 transition-all shadow-lg active:scale-95"
+            className="flex items-center gap-3 px-5 py-2.5 bg-white border border-gray-100 text-gray-900 rounded-[20px] hover:bg-gray-50 transition-all shadow-sm active:scale-95"
           >
-            <User className="w-4 h-4 text-blue-400" />
+            <User className="w-4 h-4 text-orange-500" />
             <span className="text-[11px] font-black uppercase tracking-wider">Đăng nhập</span>
           </button>
         ) : (
@@ -82,7 +82,7 @@ export default function Header() {
               aria-label="Menu người dùng"
               className="flex items-center gap-2 px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-[20px] hover:bg-gray-100 transition-all group shadow-sm active:scale-95"
             >
-              <User className="w-4 h-4 text-blue-600" />
+              <User className="w-4 h-4 text-orange-500" />
               <span className="text-[11px] font-black text-gray-900 uppercase tracking-tight">{session.user?.name}</span>
             </button>
 
@@ -93,9 +93,9 @@ export default function Header() {
                     <Link 
                       href="/admin"
                       onClick={() => setShowMenu(false)}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 rounded-xl transition-colors text-xs font-bold text-blue-600 group"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-orange-50 rounded-xl transition-colors text-xs font-bold text-orange-600 group"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <LayoutDashboard className="w-4 h-4" />
                       </div>
                       <span>Trang quản trị</span>

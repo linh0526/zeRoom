@@ -54,7 +54,6 @@ PostSchema.pre("save", async function(next) {
 PostSchema.index({ status: 1 });
 PostSchema.index({ createdAt: -1 });
 PostSchema.index({ status: 1, createdAt: -1 });
-PostSchema.index({ slug: 1 });
 
 const Post = models.Post || model("Post", PostSchema);
 export default Post;

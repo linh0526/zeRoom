@@ -126,7 +126,7 @@ export default function ManagePostsPage() {
           </div>
           <Link 
             href="/post"
-            className="flex items-center gap-2 px-6 py-3.5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-blue-500/20 hover:bg-blue-700 hover:-translate-y-0.5 transition-all"
+            className="flex items-center gap-2 px-6 py-3.5 bg-orange-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-orange-500/20 hover:bg-orange-700 hover:-translate-y-0.5 transition-all"
           >
             <Plus className="w-4 h-4" />
             Tạo tin mới
@@ -141,7 +141,7 @@ export default function ManagePostsPage() {
               <input 
                 type="text" 
                 placeholder="Tìm kiếm thông tin bài đăng..."
-                className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:bg-white focus:border-blue-500 outline-none transition-all font-medium"
+                className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:bg-white focus:border-orange-500 outline-none transition-all font-medium"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -179,7 +179,7 @@ export default function ManagePostsPage() {
                           <Search className="w-10 h-10 text-gray-200" />
                         </div>
                         <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Không có kết quả nào</p>
-                        <Link href="/post" className="text-blue-600 font-black text-sm uppercase tracking-widest hover:underline mt-2">Đăng tin ngay</Link>
+                        <Link href="/post" className="text-orange-600 font-black text-sm uppercase tracking-widest hover:underline mt-2">Đăng tin ngay</Link>
                       </div>
                     </td>
                   </tr>
@@ -188,17 +188,17 @@ export default function ManagePostsPage() {
                     <tr key={post._id} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-6 py-6">
                         <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 rounded-2xl bg-gray-100 overflow-hidden shrink-0 shadow-sm border border-white">
-                             <Image src={post.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2340&auto=format&fit=crop'} alt="" fill sizes="56px" className="object-cover" />
+                          <div className="w-14 h-14 rounded-2xl bg-gray-100 overflow-hidden shrink-0 shadow-sm border border-white relative">
+                             <Image src={post.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2340&auto=format&fit=crop'} alt="" fill sizes="56px" className="object-cover" unoptimized={post.images?.[0]?.includes("scontent") || false} />
                           </div>
-                          <div>
-                            <p className="text-sm font-bold text-gray-900 mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">{post.title}</p>
+                          <div className="max-w-[200px] sm:max-w-xs md:max-w-sm">
+                            <p className="text-sm font-bold text-gray-900 mb-1 line-clamp-2 group-hover:text-orange-600 transition-colors leading-snug">{post.title}</p>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{post.areaSize} m² • {post.price.toLocaleString("vi-VN")} đ</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-6">
-                        <span className="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-wider border border-blue-100/50">
+                        <span className="px-4 py-1.5 bg-orange-50 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-wider border border-orange-100/50">
                           {post.category || "Thuê phòng"}
                         </span>
                       </td>
@@ -236,7 +236,7 @@ export default function ManagePostsPage() {
                         </p>
                         <button 
                           onClick={() => handleRenew(post._id)}
-                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
+                          className="flex items-center gap-1 text-orange-600 hover:text-orange-800 transition-colors"
                         >
                           <RefreshCw className="w-3 h-3" />
                           <span className="text-[10px] font-black uppercase tracking-tighter">Gia hạn (+60 ngày)</span>
@@ -248,7 +248,7 @@ export default function ManagePostsPage() {
                           <div className="relative group/tooltip">
                             <Link 
                               href={`/room/${post.slug || post._id}`}
-                              className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm flex items-center justify-center"
+                              className="p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition-all shadow-sm flex items-center justify-center"
                             >
                               <Eye className="w-4 h-4" />
                             </Link>
@@ -315,7 +315,7 @@ export default function ManagePostsPage() {
             <div className="flex items-center gap-6">
                <div className="flex items-center gap-3">
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Số hàng/trang:</span>
-                  <select className="bg-white border border-gray-200 rounded-lg text-xs font-bold px-3 py-1.5 outline-none focus:border-blue-500 transition-all">
+                  <select className="bg-white border border-gray-200 rounded-lg text-xs font-bold px-3 py-1.5 outline-none focus:border-orange-500 transition-all">
                     <option>10</option>
                     <option>20</option>
                     <option>50</option>
@@ -331,7 +331,7 @@ export default function ManagePostsPage() {
               </button>
               <div className="flex items-center gap-1 mx-2">
                 {[1].map((i) => (
-                  <button key={i} className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${i === 1 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
+                  <button key={i} className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${i === 1 ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/30' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}`}>
                     {i}
                   </button>
                 ))}

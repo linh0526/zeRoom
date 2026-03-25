@@ -18,15 +18,18 @@ import {
   Edit3,
   Plus,
   X,
+  RotateCcw,
+  FileSpreadsheet,
+  Upload,
   Settings,
-  ShieldCheck,
-  RotateCcw
+  ShieldCheck
 } from "lucide-react";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { getRelativeTime } from "@/lib/formatDate";
+import { readExcelFile, mapExcelToPosts } from "@/lib/excelParser";
 
 type PostStatus = "pending" | "approved" | "rejected" | "expired" | "hidden";
 
@@ -45,6 +48,9 @@ export default function AdminPosts() {
   const [rejectingPostId, setRejectingPostId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isRejecting, setIsRejecting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedPostIds, setSelectedPostIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetchPosts();
@@ -133,7 +139,7 @@ export default function AdminPosts() {
       toast.error("Lỗi kết nối khi xóa");
     }
   };
-
+  
   const handleAdminUpdate = async (id: string, updateData: any) => {
     try {
       const res = await fetch("/api/admin/posts", {
@@ -150,6 +156,45 @@ export default function AdminPosts() {
       toast.error("Lỗi cập nhật tin đăng");
     }
   };
+  
+  const handleExcelImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    const toastId = toast.loading("Đang xử lý file Excel...");
+
+    try {
+      const jsonData = await readExcelFile(file);
+      const postsToImport = mapExcelToPosts(jsonData);
+
+      if (postsToImport.length === 0) {
+        toast.error("Không tìm thấy dữ liệu hợp lệ trong file Excel", { id: toastId });
+        return;
+      }
+
+      const res = await fetch("/api/admin/posts/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ posts: postsToImport }),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        toast.success(`Nhập thành công ${result.count} bài đăng từ Excel`, { id: toastId });
+        fetchPosts(); // Refresh list
+      } else {
+        const error = await res.json();
+        toast.error(error.error || "Lỗi khi nhập dữ liệu từ Excel", { id: toastId });
+      }
+    } catch (error) {
+      console.error("Excel import error:", error);
+      toast.error("Lỗi khi đọc file Excel. Vui lòng kiểm tra định dạng.", { id: toastId });
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const getStatusBadge = (status: PostStatus) => {
     switch (status) {
@@ -164,6 +209,43 @@ export default function AdminPosts() {
       case "expired":
         return <span className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-[10px] font-black uppercase tracking-wider border border-gray-200/50">Hết hạn</span>;
     }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedPostIds.length === 0) return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedPostIds.length} bài đăng đã chọn? Hành động này không thể hoàn tác.`)) return;
+
+    try {
+      const res = await fetch("/api/admin/posts/bulk", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedPostIds }),
+      });
+
+      if (res.ok) {
+        toast.success(`Đã xóa thành công ${selectedPostIds.length} bài đăng`);
+        setSelectedPostIds([]);
+        fetchPosts();
+      } else {
+        toast.error("Lỗi khi xóa hàng loạt");
+      }
+    } catch (error) {
+      toast.error("Lỗi kết nối khi xóa");
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedPostIds.length === posts.length) {
+      setSelectedPostIds([]);
+    } else {
+      setSelectedPostIds(posts.map(p => p._id));
+    }
+  };
+
+  const toggleSelectPost = (id: string) => {
+    setSelectedPostIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
   };
 
   return (
@@ -184,16 +266,40 @@ export default function AdminPosts() {
           </button>
           <Link 
             href="/post"
-            className="flex items-center gap-2 px-6 py-3.5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95"
+            className="flex items-center gap-2 px-6 py-3.5 bg-orange-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-orange-500/20 hover:bg-orange-700 transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
             Tạo tin mới
           </Link>
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isImporting}
+            className="flex items-center gap-2 px-6 py-3.5 bg-green-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-green-500/20 hover:bg-green-700 transition-all active:scale-95 disabled:opacity-50"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            {isImporting ? "Đang xử lý..." : "Import Excel"}
+          </button>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleExcelImport} 
+            accept=".xlsx, .xls, .csv" 
+            className="hidden" 
+          />
+          {selectedPostIds.length > 0 && (
+            <button 
+              onClick={handleBulkDelete}
+              className="flex items-center gap-2 px-6 py-3.5 bg-red-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all active:scale-95 animate-in fade-in zoom-in duration-200"
+            >
+              <Trash2 className="w-4 h-4" />
+              Xóa ({selectedPostIds.length})
+            </button>
+          )}
           <div className="relative hidden lg:block">
             <input 
               type="text" 
               placeholder="Tìm tin đăng, ID..." 
-              className="pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-semibold outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all w-72 shadow-sm"
+              className="pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-semibold outline-none focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500 transition-all w-72 shadow-sm"
             />
             <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-300" />
           </div>
@@ -228,6 +334,14 @@ export default function AdminPosts() {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-gray-50">
+              <th className="px-8 py-6 w-10">
+                <input 
+                  type="checkbox" 
+                  checked={posts.length > 0 && selectedPostIds.length === posts.length}
+                  onChange={toggleSelectAll}
+                  className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+                />
+              </th>
               <th className="px-8 py-6 text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Thông tin</th>
               <th className="px-8 py-6 text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Người đăng</th>
               <th className="px-8 py-6 text-[11px] font-black text-gray-800 uppercase tracking-[0.2em]">Giá / Khu vực</th>
@@ -253,8 +367,19 @@ export default function AdminPosts() {
                 </td>
               </tr>
             ) : posts.filter(p => filter === "all" || p.status === filter).map((post) => (
-              <tr key={post._id} className="hover:bg-gray-50/50 transition-colors group">
-                <td className="px-8 py-6">
+                <tr 
+                  key={post._id} 
+                  className={`hover:bg-gray-50/50 transition-all ${selectedPostIds.includes(post._id) ? 'bg-orange-50/40' : ''}`}
+                >
+                  <td className="px-8 py-6 border-b border-gray-50/20">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedPostIds.includes(post._id)}
+                      onChange={() => toggleSelectPost(post._id)}
+                      className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+                    />
+                  </td>
+                  <td className="px-8 py-6 border-b border-gray-50/20">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-md bg-gray-100 flex items-center justify-center">
                       {post.images?.[0] ? (
@@ -264,7 +389,7 @@ export default function AdminPosts() {
                       )}
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{post.title}</h4>
+                      <h4 className="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors uppercase tracking-tight line-clamp-2 max-w-[280px] break-words" title={post.title}>{post.title}</h4>
                       <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-600 font-bold">
                         <Clock className="w-3 h-3" /> {getRelativeTime(post.createdAt)}
                         <span className="w-1 h-1 bg-gray-400 rounded-full" />
@@ -275,10 +400,10 @@ export default function AdminPosts() {
                 </td>
                 <td className="px-8 py-6">
                   <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-bold text-gray-900">{post.user?.name || "Member"}</span>
+                    <div className="flex items-center gap-1.5 max-w-[140px]">
+                      <span className="text-sm font-bold text-gray-900 truncate" title={post.user?.name || "Member"}>{post.user?.name || "Member"}</span>
                       {post.user?.isVerified && (
-                        <ShieldCheck className="w-3.5 h-3.5 text-blue-600 fill-blue-50" />
+                        <ShieldCheck className="w-3.5 h-3.5 text-orange-600 fill-orange-50" />
                       )}
                     </div>
                     <span className="text-[11px] font-semibold text-gray-500">{post.phone}</span>
@@ -286,7 +411,7 @@ export default function AdminPosts() {
                 </td>
                 <td className="px-8 py-6">
                   <div>
-                    <p className="text-sm font-black text-blue-600">{(post.price / 1000000).toFixed(1)}TR</p>
+                    <p className="text-sm font-black text-orange-600">{(post.price / 1000000).toFixed(1)}TR</p>
                     <p className="text-xs font-semibold text-gray-400 mt-0.5 flex items-center gap-1 line-clamp-1 max-w-[200px]">
                       <MapPin className="w-3 h-3 shrink-0" /> {post.displayAddress || post.address}
                     </p>
@@ -367,9 +492,9 @@ export default function AdminPosts() {
                       <Trash2 className="w-4 h-4" />
                     </button>
 
-                    <button className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="Xem">
+                    <Link href={`/room/${post.slug || post._id}`} className="p-2.5 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-600 hover:text-white transition-all shadow-sm" title="Xem">
                       <ExternalLink className="w-4 h-4" />
-                    </button>
+                    </Link>
                   </div>
                 </td>
               </tr>
@@ -393,12 +518,12 @@ export default function AdminPosts() {
            <div className="bg-white p-5 rounded-2xl border border-orange-100 flex flex-col justify-between">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.1em]">Từ khóa nhạy cảm</span>
               <p className="text-sm font-bold text-gray-900 mt-2">12 từ khóa đang được chặn</p>
-              <button className="mt-4 text-[11px] font-black text-blue-600 uppercase hover:underline">Quản lý danh sách</button>
+              <button className="mt-4 text-[11px] font-black text-orange-600 uppercase hover:underline">Quản lý danh sách</button>
            </div>
            <div className="bg-white p-5 rounded-2xl border border-orange-100 flex flex-col justify-between">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.1em]">Phone Blacklist</span>
               <p className="text-sm font-bold text-gray-900 mt-2">38 số điện thoại bị chặn</p>
-              <button className="mt-4 text-[11px] font-black text-blue-600 uppercase hover:underline">Thêm số mới</button>
+              <button className="mt-4 text-[11px] font-black text-orange-600 uppercase hover:underline">Thêm số mới</button>
            </div>
            <div className="bg-white p-5 rounded-2xl border border-orange-100 flex flex-col justify-between">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.1em]">Tự động xóa rác</span>
@@ -444,7 +569,7 @@ export default function AdminPosts() {
                   onChange={(e) => {
                     setEditingPost({...editingPost, status: e.target.value as PostStatus});
                   }}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-900 outline-none focus:border-blue-500 transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-900 outline-none focus:border-orange-500 transition-all"
                 >
                   <option value="pending">Chờ duyệt</option>
                   <option value="approved">Duyệt hiển thị</option>
@@ -472,7 +597,7 @@ export default function AdminPosts() {
                   type="date" 
                   name="expiresAt"
                   defaultValue={editingPost.expiresAt ? new Date(editingPost.expiresAt).toISOString().split('T')[0] : ""}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-900 outline-none focus:border-blue-500 transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-900 outline-none focus:border-orange-500 transition-all"
                 />
               </div>
 
@@ -507,15 +632,15 @@ export default function AdminPosts() {
             </div>
 
             <div className="space-y-4">
-              <div className="p-6 bg-blue-50 rounded-3xl border border-blue-100 flex items-center justify-between">
+              <div className="p-6 bg-orange-50 rounded-3xl border border-orange-100 flex items-center justify-between">
                 <div>
-                  <h4 className="font-black text-blue-900 text-sm">Duyệt bài đăng mới</h4>
-                  <p className="text-[10px] font-bold text-blue-600/70 uppercase tracking-tight mt-0.5">Yêu cầu admin phê duyệt tin mới</p>
+                  <h4 className="font-black text-orange-900 text-sm">Duyệt bài đăng mới</h4>
+                  <p className="text-[10px] font-bold text-orange-600/70 uppercase tracking-tight mt-0.5">Yêu cầu admin phê duyệt tin mới</p>
                 </div>
                 <button 
                   disabled={isConfigSaving}
                   onClick={() => updateSettings({ requireApprovalNew: !adminConfig.requireApprovalNew })}
-                  className={`w-14 h-8 rounded-full transition-all duration-300 relative ${adminConfig.requireApprovalNew ? 'bg-blue-600' : 'bg-gray-200'}`}
+                  className={`w-14 h-8 rounded-full transition-all duration-300 relative ${adminConfig.requireApprovalNew ? 'bg-orange-600' : 'bg-gray-200'}`}
                 >
                    <div className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-all duration-300 shadow-sm ${
                      adminConfig.requireApprovalNew ? 'right-1' : 'left-1'

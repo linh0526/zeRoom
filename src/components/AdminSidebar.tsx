@@ -31,12 +31,12 @@ export default function AdminSidebar() {
       {/* Brand */}
       <div className="p-8 border-b border-white/5">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+          <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
             <ShieldCheck className="w-6 h-6 text-white" />
           </div>
           <div>
             <span className="text-xl font-black text-white tracking-tight">ZEROOM</span>
-            <span className="block text-[10px] font-bold text-blue-500 tracking-[0.2em] uppercase">Admin Portal</span>
+            <span className="block text-[10px] font-bold text-orange-500 tracking-[0.2em] uppercase">Admin Portal</span>
           </div>
         </Link>
       </div>
@@ -51,11 +51,11 @@ export default function AdminSidebar() {
               href={item.href}
               className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all group ${
                 isActive 
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" 
+                  ? "bg-orange-600 text-white shadow-lg shadow-orange-500/20" 
                   : "text-gray-400 hover:bg-white/5 hover:text-white"
               }`}
             >
-              <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? "text-white" : "text-gray-400 group-hover:text-blue-400"}`} />
+              <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? "text-white" : "text-gray-400 group-hover:text-orange-400"}`} />
               <span className="font-bold text-sm tracking-wide">{item.label}</span>
               {isActive && (
                 <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_10px_white]" />

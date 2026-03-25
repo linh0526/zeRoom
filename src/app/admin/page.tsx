@@ -48,8 +48,8 @@ export default function AdminDashboard() {
       label: "Tổng tin hiển thị", 
       value: data.stats.totalApproved.toLocaleString(), 
       icon: FileText, 
-      color: "text-blue-500", 
-      bg: "bg-blue-50", 
+      color: "text-orange-500", 
+      bg: "bg-orange-50", 
       trend: "Hoạt động", 
       trendUp: true 
     },
@@ -119,10 +119,10 @@ export default function AdminDashboard() {
             {[40, 65, 45, 90, 55, 75, 85].map((val, i) => (
               <div key={i} className="flex-1 space-y-3 flex flex-col items-center group">
                 <div 
-                  className="w-full bg-blue-50 rounded-full relative overflow-hidden transition-all group-hover:bg-blue-100" 
+                  className="w-full bg-orange-50 rounded-full relative overflow-hidden transition-all group-hover:bg-orange-100" 
                   style={{ height: `${val}%` }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-blue-600 to-blue-400 opacity-80" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-orange-600 to-orange-400 opacity-80" />
                 </div>
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">T{i+2}</span>
               </div>
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
                      0{idx+1}
                    </div>
                    <div>
-                     <p className="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{area.name}</p>
+                     <p className="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors uppercase tracking-tight">{area.name}</p>
                      <div className="flex items-center gap-3 mt-0.5">
                         <span className="flex items-center gap-1 text-[10px] font-bold text-gray-400">
                           <FileText className="w-3 h-3" /> {area.count} tin
@@ -158,7 +158,7 @@ export default function AdminDashboard() {
                      </div>
                    </div>
                 </div>
-                <ArrowUpRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
+                <ArrowUpRight className="w-4 h-4 text-gray-300 group-hover:text-orange-500 transition-colors" />
               </div>
             ))}
           </div>

@@ -41,7 +41,7 @@ const createPriceIcon = (price: number, isSelected: boolean) => {
   return L.divIcon({
     className: "bg-transparent border-none",
     html: `<div class="px-3 py-1.5 rounded-2xl font-bold text-sm shadow-md border-2 transition-all duration-300 flex items-center justify-center whitespace-nowrap gap-1.5
-      ${isSelected ? 'bg-blue-600 text-white border-white scale-110 shadow-blue-500/50 z-[1000]' : 'bg-white text-gray-800 border-transparent hover:scale-105'}">
+      ${isSelected ? 'bg-orange-600 text-white border-white scale-110 shadow-orange-500/50 z-[1000]' : 'bg-white text-gray-800 border-transparent hover:scale-105'}">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-80"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       ${priceText}
     </div>`,
@@ -90,6 +90,7 @@ const RoomMarker = ({ room, isSelected, onRoomSelect }: { room: any, isSelected:
               alt={room.title} 
               fill
               sizes="200px"
+              unoptimized
               className={`object-cover ${!room.images?.[0] ? 'bg-gray-100' : ''}`}
             />
             {!room.images?.[0] && (
@@ -101,7 +102,7 @@ const RoomMarker = ({ room, isSelected, onRoomSelect }: { room: any, isSelected:
           <div className="p-3">
             <h3 className="font-bold text-xs text-gray-800 line-clamp-1 mb-1">{room.title}</h3>
             <div className="flex justify-between items-center mt-1">
-              <p className="text-blue-600 font-bold text-sm">
+              <p className="text-orange-600 font-bold text-sm">
                 {room.price >= 1000000 ? `${(room.price / 1000000).toLocaleString("vi-VN")} Tr₫` : `${room.price.toLocaleString("vi-VN")}đ`}
               </p>
               <p className="text-[10px] text-gray-500 font-bold italic">
@@ -115,7 +116,7 @@ const RoomMarker = ({ room, isSelected, onRoomSelect }: { room: any, isSelected:
   );
 };
 
-export default function MapComponent({ rooms, center = [10.762622, 106.660172], selectedRoom, onRoomSelect }: MapProps) {
+export default function MapComponent({ rooms, center = [10.86750471385017, 106.61996028967714], selectedRoom, onRoomSelect }: MapProps) {
   return (
     <MapContainer
       center={center}

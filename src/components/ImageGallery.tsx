@@ -85,6 +85,7 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
             fill
             sizes="(max-width: 1200px) 100vw, 800px"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
+            unoptimized={images[currentIndex]?.includes("scontent")}
           />
           
 
@@ -128,10 +129,17 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
                 onClick={() => setCurrentIndex(idx)}
                 aria-label={`Xem ảnh thứ ${idx + 1}`}
                 className={`relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden snap-center transition-all ${
-                  currentIndex === idx ? "ring-2 ring-blue-600 ring-offset-2 scale-100 opacity-100" : "opacity-60 hover:opacity-100 scale-95 hover:scale-100"
+                  currentIndex === idx ? "ring-2 ring-orange-600 ring-offset-2 scale-100 opacity-100" : "opacity-60 hover:opacity-100 scale-95 hover:scale-100"
                 }`}
               >
-                <Image src={img} alt={`Thumbnail ${idx + 1}`} fill sizes="96px" className="object-cover" />
+                <Image 
+                  src={img} 
+                  alt={`Thumbnail ${idx + 1}`} 
+                  fill 
+                  sizes="96px" 
+                  className="object-cover" 
+                  unoptimized={img?.includes("scontent")}
+                />
               </button>
             ))}
           </div>
@@ -164,6 +172,7 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
               fill
               sizes="100vw"
               className="object-contain select-none"
+              unoptimized={images[currentIndex]?.includes("scontent")}
             />
           </div>
 

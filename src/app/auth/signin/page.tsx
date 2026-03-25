@@ -47,20 +47,20 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col md:flex-row">
-      <div className="hidden md:flex w-1/2 bg-blue-600 items-center justify-center p-20 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full blur-3xl opacity-20 -mr-32 -mt-32 animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-400 rounded-full blur-3xl opacity-10 -ml-44 -mb-44 animate-pulse"></div>
+      <div className="hidden md:flex w-1/2 bg-orange-600 items-center justify-center p-20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20 -mr-32 -mt-32 animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-400 rounded-full blur-3xl opacity-10 -ml-44 -mb-44 animate-pulse"></div>
         
         <div className="relative z-10 space-y-8">
           <Link href="/" aria-label="zeRoom Home" className="flex items-center gap-3 group transition-all">
             <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110">
-              <span className="text-blue-600 font-bold text-4xl italic">z</span>
+              <span className="text-orange-600 font-bold text-4xl italic">z</span>
             </div>
             <h1 className="text-5xl font-black tracking-tighter text-white">zeRoom</h1>
           </Link>
           <div className="space-y-4 max-w-md">
             <h2 className="text-3xl font-black text-white leading-tight">Gia nhập cộng đồng tìm trọ thông minh.</h2>
-            <p className="text-blue-100 font-medium leading-relaxed">
+            <p className="text-orange-100 font-medium leading-relaxed">
               Trải nghiệm cách tìm phòng trọ hoàn toàn mới với bản đồ và tiện ích hiện đại.
             </p>
           </div>
@@ -68,7 +68,7 @@ export default function SignInPage() {
       </div>
 
       <div className="flex-1 flex items-center justify-center px-8 relative overflow-hidden">
-        <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-gray-400 hover:text-blue-600 font-bold uppercase tracking-widest text-[10px] transition-all hover:-translate-x-1">
+        <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-gray-400 hover:text-orange-600 font-bold uppercase tracking-widest text-[10px] transition-all hover:-translate-x-1">
           <ArrowLeft className="w-4 h-4" />
           Trở về trang chủ
         </Link>
@@ -82,7 +82,7 @@ export default function SignInPage() {
           <div className="space-y-4">
             <button 
               onClick={() => signIn("google", { callbackUrl: "/" })}
-              className="w-full flex items-center justify-center gap-4 py-4 bg-white border-2 border-gray-100 rounded-[24px] font-black uppercase tracking-widest text-[11px] text-gray-700 hover:border-blue-100 hover:bg-blue-50/30 transition-all active:scale-[0.98] shadow-sm group"
+              className="w-full flex items-center justify-center gap-4 py-4 bg-white border-2 border-gray-100 rounded-[24px] font-black uppercase tracking-widest text-[11px] text-gray-700 hover:border-orange-100 hover:bg-orange-50/30 transition-all active:scale-[0.98] shadow-sm group"
             >
               <svg viewBox="0 0 24 24" className="w-5 h-5 transition-transform group-hover:scale-110" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -101,14 +101,14 @@ export default function SignInPage() {
 
             <form onSubmit={handleCredentialsLogin} className="space-y-4">
               <div className="space-y-2 group">
-                <label htmlFor="email" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 group-focus-within:text-blue-500 transition-colors">Địa chỉ Email</label>
+                <label htmlFor="email" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 group-focus-within:text-orange-500 transition-colors">Địa chỉ Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
+                  <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-orange-500 transition-colors" />
                   <input 
                     type="email" 
                     id="email"
                     placeholder="name@example.com"
-                    className="w-full pl-14 pr-6 py-4 bg-gray-50 border-2 border-transparent rounded-[24px] text-sm text-gray-900 focus:bg-white focus:border-blue-500 outline-none transition-all font-bold placeholder:text-gray-300 shadow-sm focus:shadow-md"
+                    className="w-full pl-14 pr-6 py-4 bg-gray-50 border-2 border-transparent rounded-[24px] text-sm text-gray-900 focus:bg-white focus:border-orange-500 outline-none transition-all font-bold placeholder:text-gray-300 shadow-sm focus:shadow-md"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -116,14 +116,14 @@ export default function SignInPage() {
                 </div>
               </div>
               <div className="space-y-2 group">
-                 <label htmlFor="password" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 group-focus-within:text-blue-500 transition-colors">Mật khẩu</label>
+                 <label htmlFor="password" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 group-focus-within:text-orange-500 transition-colors">Mật khẩu</label>
                 <div className="relative">
-                  <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
+                  <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-orange-500 transition-colors" />
                   <input 
                     type="password" 
                     id="password"
                     placeholder="********"
-                    className="w-full pl-14 pr-6 py-4 bg-gray-50 border-2 border-transparent rounded-[24px] text-sm text-gray-900 focus:bg-white focus:border-blue-500 outline-none transition-all font-bold placeholder:text-gray-300 shadow-sm focus:shadow-md"
+                    className="w-full pl-14 pr-6 py-4 bg-gray-50 border-2 border-transparent rounded-[24px] text-sm text-gray-900 focus:bg-white focus:border-orange-500 outline-none transition-all font-bold placeholder:text-gray-300 shadow-sm focus:shadow-md"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -133,7 +133,7 @@ export default function SignInPage() {
               <button 
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 py-4 bg-gray-900 text-white rounded-[24px] font-black uppercase tracking-widest text-[11px] hover:bg-blue-600 transition-all active:scale-[0.98] shadow-xl hover:shadow-blue-500/20 disabled:opacity-70 disabled:cursor-not-allowed group"
+                className="w-full flex items-center justify-center gap-2 py-4 bg-orange-600 text-white rounded-[24px] font-black uppercase tracking-widest text-[11px] hover:bg-orange-700 transition-all active:scale-[0.98] shadow-xl hover:shadow-orange-500/20 disabled:opacity-70 disabled:cursor-not-allowed group"
               >
                 {isLoading ? (
                   <>
@@ -151,7 +151,7 @@ export default function SignInPage() {
           </div>
 
           <p className="text-center text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-10">
-            Chưa có tài khoản? <Link href="/auth/register" className="text-blue-600 hover:underline cursor-pointer transition-all hover:tracking-[0.15em]">Đăng ký ngay</Link>
+            Chưa có tài khoản? <Link href="/auth/register" className="text-orange-600 hover:underline cursor-pointer transition-all hover:tracking-[0.15em]">Đăng ký ngay</Link>
           </p>
         </div>
       </div>
