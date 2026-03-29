@@ -1,239 +1,190 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
-import Image from "next/image";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { getRelativeTime } from "@/lib/formatDate";
+import dynamic from "next/dynamic";
+const MapComponent = dynamic(() => import("@/components/MapComponent"), { ssr: false });
+import RoomCard from "@/components/RoomCard";
 
-const MapComponent = dynamic(() => import("@/components/MapComponent"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full bg-gray-50 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-500 font-medium animate-pulse text-sm">Đang tải bản đồ...</p>
-      </div>
-    </div>
-  ),
-});
+import FilterModal from "@/components/FilterModal";
 
-function MapRoomOverlay({ room, onClose }: { room: any; onClose: () => void }) {
-  const [currentIdx, setCurrentIdx] = useState(0);
-
-  if (!room) return null;
-
-  const images = room.images || [];
-  const nextImg = () => setCurrentIdx(p => (p + 1) % images.length);
-  const prevImg = () => setCurrentIdx(p => (p - 1 + images.length) % images.length);
-
-  return (
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1000] w-[90%] max-w-2xl bg-white rounded-2xl shadow-2xl p-4 animate-in fade-in zoom-in-95 duration-200">
-      <div className="flex justify-between items-center mb-3 px-1">
-        <h3 className="font-bold text-gray-800 text-sm line-clamp-1">{room.title}</h3>
-        <button onClick={onClose} aria-label="Đóng bảng xem trước" className="p-1 hover:bg-gray-100 text-gray-500 hover:text-orange-600 rounded-full transition-colors shrink-0">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-      <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden mb-4 group bg-gray-100">
-        {images[currentIdx] && (
-          <Image 
-            src={images[currentIdx]} 
-            alt={room.title} 
-            fill
-            sizes="(max-width: 768px) 90vw, (max-width: 1200px) 700px, 800px"
-            className="object-contain" 
-            unoptimized={images[currentIdx]?.includes("scontent")}
-          />
-        )}
-        {!images[currentIdx] && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50">
-            <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mb-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-orange-200"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            </div>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Không có ảnh</p>
-          </div>
-        )}
-         
-        {images.length > 1 && (
-          <>
-            <button onClick={prevImg} aria-label="Ảnh trước đó" className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <button onClick={nextImg} aria-label="Ảnh kế tiếp" className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          </>
-        )}
-      </div>
-
-      {images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
-          {images.map((img: string, idx: number) => (
-             <button 
-               key={idx} 
-               onClick={() => setCurrentIdx(idx)}
-               aria-label={`Xem ảnh thứ ${idx + 1}`}
-               className={`relative w-28 h-20 flex-shrink-0 rounded-lg overflow-hidden transition-all duration-300 ${currentIdx === idx ? 'ring-2 ring-orange-600 ring-offset-2 opacity-100' : 'opacity-40 hover:opacity-100'}`}
-             >
-                {img && (
-                  <Image 
-                    src={img} 
-                    alt={`Ảnh thứ ${idx + 1} của ${room.title}`} 
-                    fill 
-                    sizes="112px" 
-                    className="object-cover" 
-                    unoptimized={img?.includes("scontent")}
-                  />
-                )}
-             </button>
-          ))}
-        </div>
-      )}
-
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-        <div className="flex flex-col">
-          <p className="text-xl font-black text-orange-600">
-            {room.price >= 1000000 ? `${(room.price / 1000000).toLocaleString("vi-VN")} Tr₫` : `${room.price.toLocaleString("vi-VN")}đ`}
-          </p>
-          <div className="flex items-center gap-2">
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Giá thuê / tháng</p>
-            <span className="w-1 h-1 bg-gray-300 rounded-full" />
-            <p className="text-[10px] text-gray-400 font-bold italic">{getRelativeTime(room.createdAt)}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+const PROVINCE_COORDINATES: Record<string, [number, number]> = {
+  "Hồ Chí Minh": [10.762622, 106.660172],
+  "Hà Nội": [21.028511, 105.804817],
+  "Đà Nẵng": [16.0544, 108.2022],
+  "Bình Dương": [10.9804, 106.6519],
+  "Đồng Nai": [10.9416, 106.8273],
+  "Bà Rịa - Vũng Tàu": [10.4114, 107.1355],
+  "Cần Thơ": [10.0333, 105.7833],
+  "Khánh Hòa": [12.2467, 109.1911],
+  "Hải Phòng": [20.8449, 106.6881],
+  "An Giang": [10.5181, 105.1189],
+  "Bắc Giang": [21.2731, 106.1946],
+  "Bắc Kạn": [22.147, 105.8347],
+  "Bạc Liêu": [9.2941, 105.7242],
+  "Bắc Ninh": [21.1861, 106.0763],
+  "Bến Tre": [10.2422, 106.3762],
+  "Bình Phước": [11.5333, 106.8842],
+  "Bình Thuận": [10.9333, 108.1],
+  "Bình Định": [13.782, 109.2193],
+  "Cà Mau": [9.1769, 105.1524],
+  "Cao Bằng": [22.6667, 106.25],
+  "Gia Lai": [13.9833, 108.0],
+  "Hà Giang": [22.8233, 104.9833],
+  "Hà Nam": [20.5833, 105.9167],
+  "Hà Tĩnh": [18.3333, 105.9],
+  "Hải Dương": [20.9405, 106.333],
+  "Hậu Giang": [9.784, 105.47],
+  "Hòa Bình": [20.8172, 105.3375],
+  "Hưng Yên": [20.6464, 106.0511],
+  "Kiên Giang": [10.012, 105.0809],
+  "Kon Tum": [14.35, 108.0],
+  "Lai Châu": [22.3959, 103.4447],
+  "Lâm Đồng": [11.9404, 108.4583],
+  "Lạng Sơn": [21.85, 106.75],
+  "Lào Cai": [22.4833, 103.9667],
+  "Long An": [10.5333, 106.4167],
+  "Nam Định": [20.4167, 106.1667],
+  "Nghệ An": [18.6667, 105.6667],
+  "Ninh Bình": [20.25, 105.9833],
+  "Ninh Thuận": [11.5667, 108.9833],
+  "Phú Thọ": [21.3214, 105.3994],
+  "Phú Yên": [13.0833, 109.3],
+  "Quảng Bình": [17.4833, 106.6],
+  "Quảng Nam": [15.55, 108.3333],
+  "Quảng Ngãi": [15.1167, 108.8],
+  "Quảng Ninh": [20.95, 107.0833],
+  "Quảng Trị": [16.75, 107.1667],
+  "Sóc Trăng": [9.6, 105.9667],
+  "Sơn La": [21.3167, 103.9],
+  "Tây Ninh": [11.3, 106.1],
+  "Thái Bình": [20.45, 106.3333],
+  "Thái Nguyên": [21.5833, 105.8333],
+  "Thanh Hóa": [19.8, 105.7667],
+  "Thừa Thiên Huế": [16.4667, 107.6],
+  "Tiền Giang": [10.4167, 106.3333],
+  "Trà Vinh": [9.9333, 106.3333],
+  "Tuyên Quang": [21.8167, 105.2167],
+  "Vĩnh Long": [10.25, 105.9667],
+  "Vĩnh Phúc": [21.3, 105.6],
+  "Yên Bái": [21.7, 104.8667],
+  "Đắk Lắk": [12.6667, 108.0333],
+  "Đắk Nông": [12.0, 107.6833],
+  "Điện Biên": [21.3833, 103.0167],
+  "Đồng Tháp": [10.45, 105.6333]
+};
 
 export default function Home() {
-  const [allRooms, setAllRooms] = useState<any[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
+  const [filteredRooms, setFilteredRooms] = useState<any[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [filters, setFilters] = useState<any>({
+    search: "",
+    minPrice: 0,
+    maxPrice: 15000000,
+    minArea: 0,
+    category: "all",
+    sortBy: "newest",
+    bedrooms: "all",
+    province: "all"
+  });
+  const [mapCenter, setMapCenter] = useState<[number, number]>([10.762622, 106.660172]);
+
+  const fetchRooms = async () => {
+    try {
+      const res = await fetch("/api/posts?includeImages=true");
+      if (!res.ok) throw new Error("API response was not ok");
+      const data = await res.json();
+      setRooms(data);
+      setFilteredRooms(data);
+    } catch (error) {
+      console.error("Error fetching rooms:", error);
+    }
+  };
 
   useEffect(() => {
     fetchRooms();
   }, []);
 
-  const fetchRooms = async () => {
-    try {
-      setLoading(true);
-      
-      // 1. Fetch ALL rooms without images (for the map - fast)
-      const allRes = await fetch("/api/posts?includeImages=false");
-      const allData = await allRes.json();
-      
-      if (Array.isArray(allData)) {
-        setAllRooms(allData);
-        setRooms(allData);
-        
-        // 2. Fetch latest 50 rooms WITH images (for the sidebar - manageable)
-        const recentRes = await fetch("/api/posts?includeImages=true&limit=50");
-        const recentData = await recentRes.json();
-        
-        if (Array.isArray(recentData)) {
-          // Create a map of rooms with images
-          const imageMap = new Map(recentData.map(r => [r._id, r.images]));
-          
-          // Update the state with images where available
-          setAllRooms(prev => prev.map(room => ({
-            ...room,
-            images: imageMap.get(room._id) || room.images
-          })));
-          
-          setRooms(prev => prev.map(room => ({
-            ...room,
-            images: imageMap.get(room._id) || room.images
-          })));
-        }
-      }
-    } catch (error) {
-      console.error("Lỗi fetch rooms:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleFilterChange = (newFilters: any) => {
+    const updatedFilters = { ...filters, ...newFilters };
+    setFilters(updatedFilters);
 
-  const handleFilterChange = (filters: any) => {
-    let filtered = [...allRooms];
-    
-    // Lọc theo tìm kiếm
-    if (filters.search) {
-      const s = filters.search.toLowerCase();
-      filtered = filtered.filter(r => 
-        r.title.toLowerCase().includes(s) || 
-        r.address.toLowerCase().includes(s)
-      );
-    }
-
-    // Lọc theo loại hình
-    if (filters.category && filters.category !== "all") {
-      filtered = filtered.filter(r => r.category === filters.category);
-    }
-
-    // Lọc theo giá
-    if (filters.minPrice !== undefined) {
-      filtered = filtered.filter((room) => room.price >= filters.minPrice);
-    }
-    if (filters.maxPrice !== undefined) {
-      filtered = filtered.filter((room) => room.price <= filters.maxPrice);
-    }
-
-    // Lọc theo diện tích
-    if (filters.minArea !== undefined) {
-      filtered = filtered.filter(r => (r.areaSize || 0) >= filters.minArea);
-    }
-
-    // Lọc theo số phòng ngủ
-    if (filters.bedrooms && filters.bedrooms !== "all") {
-      const bedroomsNum = filters.bedrooms.includes("+") 
-        ? parseInt(filters.bedrooms) 
-        : parseInt(filters.bedrooms);
-      
-      if (filters.bedrooms.includes("+")) {
-        filtered = filtered.filter(r => (r.bedrooms || 0) >= bedroomsNum);
-      } else {
-        filtered = filtered.filter(r => (r.bedrooms || 0) === bedroomsNum);
+    // If province changed, update map center
+    if (newFilters.province && newFilters.province !== filters.province) {
+      const coords = PROVINCE_COORDINATES[newFilters.province as keyof typeof PROVINCE_COORDINATES];
+      if (coords) {
+        setMapCenter(coords);
       }
     }
 
-    // Sắp xếp
-    if (filters.sortBy === "newest") {
-      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    } else if (filters.sortBy === "price-asc") {
+    let filtered = rooms.filter((room) => {
+      const matchSearch = !updatedFilters.search || 
+        room.title.toLowerCase().includes(updatedFilters.search.toLowerCase()) ||
+        room.address.toLowerCase().includes(updatedFilters.search.toLowerCase());
+      
+      const matchCategory = updatedFilters.category === "all" || room.category === updatedFilters.category;
+      
+      const matchPrice = room.price >= updatedFilters.minPrice && room.price <= updatedFilters.maxPrice;
+      
+      const matchArea = room.area >= updatedFilters.minArea;
+
+      const matchBedrooms = updatedFilters.bedrooms === "all" || 
+        (updatedFilters.bedrooms === "4+" ? parseInt(room.itemConfig?.detail_rooms?.[0]?.value) >= 4 : room.itemConfig?.detail_rooms?.[0]?.value === updatedFilters.bedrooms);
+
+      const matchProvince = updatedFilters.province === "all" || 
+        room.address.includes(updatedFilters.province);
+
+      return matchSearch && matchCategory && matchPrice && matchArea && matchBedrooms && matchProvince;
+    });
+
+    if (updatedFilters.sortBy === "price-asc") {
       filtered.sort((a, b) => a.price - b.price);
-    } else if (filters.sortBy === "price-desc") {
+    } else if (updatedFilters.sortBy === "price-desc") {
       filtered.sort((a, b) => b.price - a.price);
+    } else {
+      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
-    
-    setRooms(filtered);
+
+    setFilteredRooms(filtered);
   };
 
   return (
     <main className="flex flex-col h-screen w-screen bg-white overflow-hidden">
-      <Header />
+      <Header 
+        onFilterChange={handleFilterChange} 
+        filters={filters} 
+        onOpenFilter={() => setIsFilterModalOpen(true)}
+      />
       
       <div className="flex flex-1 overflow-hidden">
         <Sidebar 
-          rooms={rooms} 
+          rooms={filteredRooms}
           onFilterChange={handleFilterChange} 
+          filters={filters} 
           selectedRoom={selectedRoom}
           onRoomSelect={setSelectedRoom}
-          loading={loading}
         />
-        
         <section className="flex-1 relative">
-          <MapComponent rooms={rooms} selectedRoom={selectedRoom} onRoomSelect={setSelectedRoom} />
+          <MapComponent 
+            rooms={filteredRooms} 
+            selectedRoom={selectedRoom} 
+            onRoomSelect={setSelectedRoom}
+            center={mapCenter}
+          />
           
-          {selectedRoom && (
-            <MapRoomOverlay room={selectedRoom} onClose={() => setSelectedRoom(null)} />
-          )}
+
         </section>
       </div>
+
+      <FilterModal 
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        onApply={handleFilterChange}
+        initialFilters={filters}
+      />
     </main>
   );
 }

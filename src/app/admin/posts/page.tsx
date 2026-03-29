@@ -30,6 +30,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { getRelativeTime } from "@/lib/formatDate";
 import { readExcelFile, mapExcelToPosts } from "@/lib/excelParser";
+import SafeImage from "@/components/SafeImage";
 
 type PostStatus = "pending" | "approved" | "rejected" | "expired" | "hidden";
 
@@ -37,6 +38,7 @@ export default function AdminPosts() {
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<PostStatus | "all">("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [editingPost, setEditingPost] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -149,7 +151,10 @@ export default function AdminPosts() {
       });
       if (res.ok) {
         setShowEditModal(false);
-        fetchPosts();
+        const updatedPost = await res.json();
+        // Since the PUT return might not have populated user, we fetchPosts to be safe
+        // but also update local state if we want instant feedback
+        fetchPosts(); 
         toast.success("Đã cập nhật thông tin bài đăng");
       }
     } catch (error) {
@@ -274,7 +279,7 @@ export default function AdminPosts() {
           <button 
             onClick={() => fileInputRef.current?.click()}
             disabled={isImporting}
-            className="flex items-center gap-2 px-6 py-3.5 bg-green-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-green-500/20 hover:bg-green-700 transition-all active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-3.5 bg-green-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-green-500/20 hover:bg-green-700 transition-all disabled:opacity-50"
           >
             <FileSpreadsheet className="w-4 h-4" />
             {isImporting ? "Đang xử lý..." : "Import Excel"}
@@ -299,6 +304,8 @@ export default function AdminPosts() {
             <input 
               type="text" 
               placeholder="Tìm tin đăng, ID..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-12 pr-6 py-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-semibold outline-none focus:ring-4 focus:ring-orange-500/5 focus:border-orange-500 transition-all w-72 shadow-sm"
             />
             <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-300" />
@@ -353,20 +360,34 @@ export default function AdminPosts() {
           <tbody className="divide-y divide-gray-50">
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-8 py-20 text-center">
+                <td colSpan={7} className="px-8 py-20 text-center">
                   <div className="flex flex-col items-center gap-4 text-gray-400">
                     <Clock className="w-10 h-10 animate-spin" />
                     <p className="font-bold text-sm uppercase tracking-widest">Đang tải dữ liệu...</p>
                   </div>
                 </td>
               </tr>
-            ) : posts.filter(p => filter === "all" || p.status === filter).length === 0 ? (
+            ) : posts.filter(p => {
+                const statusMatch = filter === "all" || p.status === filter;
+                const searchMatch = !searchTerm || 
+                                   p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                   p.phone.includes(searchTerm) ||
+                                   p.user?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+                return statusMatch && searchMatch;
+              }).length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-8 py-20 text-center text-gray-400 font-bold uppercase tracking-widest">
-                  Không có tin đăng nào
+                <td colSpan={7} className="px-8 py-20 text-center text-gray-400 font-bold uppercase tracking-widest">
+                  Không có tin đăng nào khớp với bộ lọc
                 </td>
               </tr>
-            ) : posts.filter(p => filter === "all" || p.status === filter).map((post) => (
+            ) : posts.filter(p => {
+                const statusMatch = filter === "all" || p.status === filter;
+                const searchMatch = !searchTerm || 
+                                   p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                   p.phone.includes(searchTerm) ||
+                                   p.user?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+                return statusMatch && searchMatch;
+              }).map((post) => (
                 <tr 
                   key={post._id} 
                   className={`hover:bg-gray-50/50 transition-all ${selectedPostIds.includes(post._id) ? 'bg-orange-50/40' : ''}`}
@@ -381,15 +402,17 @@ export default function AdminPosts() {
                   </td>
                   <td className="px-8 py-6 border-b border-gray-50/20">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-md bg-gray-100 flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-md bg-gray-100 flex items-center justify-center relative">
                       {post.images?.[0] ? (
-                        <img src={post.images[0]} alt={post.title} className="w-full h-full object-cover" />
+                        <SafeImage src={post.images[0]} alt={post.title} fill className="object-cover" />
                       ) : (
                         <MapPin className="w-6 h-6 text-gray-300" />
                       )}
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors uppercase tracking-tight line-clamp-2 max-w-[280px] break-words" title={post.title}>{post.title}</h4>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors uppercase tracking-tight line-clamp-2 max-w-[280px] break-words" title={post.title}>{post.title}</h4>
+                      </div>
                       <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-600 font-bold">
                         <Clock className="w-3 h-3" /> {getRelativeTime(post.createdAt)}
                         <span className="w-1 h-1 bg-gray-400 rounded-full" />
@@ -402,9 +425,6 @@ export default function AdminPosts() {
                   <div className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-1.5 max-w-[140px]">
                       <span className="text-sm font-bold text-gray-900 truncate" title={post.user?.name || "Member"}>{post.user?.name || "Member"}</span>
-                      {post.user?.isVerified && (
-                        <ShieldCheck className="w-3.5 h-3.5 text-orange-600 fill-orange-50" />
-                      )}
                     </div>
                     <span className="text-[11px] font-semibold text-gray-500">{post.phone}</span>
                   </div>
@@ -551,6 +571,8 @@ export default function AdminPosts() {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+
 
             <form onSubmit={(e) => {
               e.preventDefault();

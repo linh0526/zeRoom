@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+export const dynamic = 'force-dynamic';
 import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
 import User from "@/models/User";

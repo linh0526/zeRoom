@@ -72,3 +72,25 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #d1d5db;
 }
+
+/* Leaflet Custom Popup Styling */
+.custom-room-popup .leaflet-popup-content-wrapper {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 12px;
+}
+
+.custom-room-popup .leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+}
+
+.custom-room-popup .leaflet-popup-tip-container {
+  display: none;
+}
+
+.custom-room-popup .leaflet-popup-close-button {
+  display: none;
+}
+

@@ -74,10 +74,18 @@ const getRoom = cache(async (idOrSlug: string) => {
   }
 
   // Exclude images for faster initial load, populate user verification info
-  return await query
+  const room: any = await query
     .select("-images")
-    .populate("user", "name isVerified status")
+    .populate("user", "name isVerified status createdAt")
     .lean();
+
+  if (room && room.user) {
+    // Get total posts count for this user
+    const postCount = await Post.countDocuments({ user: room.user._id, status: "approved" });
+    room.userPostCount = postCount;
+  }
+
+  return room;
 });
 
 interface PageProps {
@@ -104,6 +112,11 @@ async function RoomDetailContent({ id }: { id: string }) {
   // Format date
   const readyDate = room.availableDate 
     ? new Date(room.availableDate).toLocaleDateString("vi-VN") 
+    : "Đang cập nhật";
+
+  // Format participation date
+  const joinDate = room.user?.createdAt 
+    ? new Date(room.user.createdAt).toLocaleDateString("vi-VN") 
     : "Đang cập nhật";
 
   const getBaseUrl = () => {
@@ -155,14 +168,24 @@ async function RoomDetailContent({ id }: { id: string }) {
                 <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
                   {room.title}
                 </h1>
-                {room.user?.isVerified && (
-                  <div className="group relative">
-                    <ShieldCheck className="w-8 h-8 text-orange-600 fill-orange-50" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl">
-                      Chính chủ xác minh
+                <div className="flex items-center gap-2">
+                  {room.isVerified && (
+                    <div className="group relative">
+                      <ShieldCheck className="w-8 h-8 text-blue-600 fill-blue-50" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-20">
+                        Tin đăng đã xác thực
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                  {room.user?.isVerified && (
+                    <div className="group relative">
+                      <ShieldCheck className="w-8 h-8 text-orange-600 fill-orange-50" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-20">
+                        Người đăng uy tín
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               <p className="flex items-center gap-2 text-gray-500 font-medium">
                 <MapPin className="w-5 h-5 text-orange-500" />
@@ -281,6 +304,72 @@ async function RoomDetailContent({ id }: { id: string }) {
                   </p>
                 </div>
               )}
+
+          {/* Contact & Safety Note */}
+          <div className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Contact Card */}
+            <div className="lg:col-span-1 bg-white border border-gray-100 rounded-[32px] p-8 shadow-sm">
+                <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <div className="w-1 h-5 bg-orange-600 rounded-full"></div>
+                    Thông tin liên hệ
+                </h3>
+                <div className="flex flex-col items-center">
+                    <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-4 relative drop-shadow-sm">
+                        <span className="text-2xl font-black text-orange-600">
+                          {(room.user?.name || "??").substring(0, 2).toUpperCase()}
+                        </span>
+                    </div>
+                    
+                    <div className="flex flex-col items-center mb-4">
+                        <h4 className="text-xl font-black text-gray-900 mb-0.5">{room.user?.name || "Người đăng tin"}</h4>
+                        {room.user?.isVerified ? (
+                          <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 rounded-full border border-orange-100">
+                             <ShieldCheck className="w-3.5 h-3.5 text-orange-600 fill-orange-50" />
+                             <span className="text-[10px] font-black text-orange-600 uppercase tracking-wider">Đã xác thực</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-50 rounded-full border border-gray-100">
+                             <div className="w-1.5 h-1.5 bg-gray-300 rounded-full"></div>
+                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Chưa xác thực</span>
+                          </div>
+                        )}
+                    </div>
+
+                    <p className="text-[12px] text-gray-500 font-bold mb-6 italic bg-gray-50/50 px-4 py-2 rounded-xl">
+                      {room.userPostCount || 0} tin đăng • Tham gia từ: {joinDate}
+                    </p>
+                    <button className="w-full py-4 bg-orange-600 text-white font-black rounded-2xl shadow-lg shadow-orange-200 hover:bg-orange-700 transition-colors flex items-center justify-center gap-2">
+                        <Phone className="w-5 h-5" />
+                        {room.phone}
+                    </button>
+                    <p className="text-[10px] text-gray-400 mt-4 text-center">Liên hệ qua Zalo hoặc gọi trực tiếp</p>
+                </div>
+            </div>
+
+            {/* Safety Note */}
+            <div className="lg:col-span-2 bg-[#0F172A] rounded-[40px] p-8 sm:p-10 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-10 opacity-10">
+                    <ShieldCheck className="w-32 h-32 text-orange-500" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-8 flex items-center gap-3 relative z-10">
+                    <CheckCircle2 className="w-6 h-6 text-orange-500" />
+                    Lưu ý
+                </h3>
+                <div className="space-y-6 relative z-10">
+                    <div className="p-6 bg-white/5 rounded-[24px] border border-white/10 backdrop-blur-sm">
+                        <p className="text-gray-200 text-sm leading-8">
+                            <span className="text-orange-400 font-black uppercase tracking-wider text-xs block mb-2">⚠️ Cảnh báo đặt cọc:</span>
+                            Chỉ đặt cọc khi xác định được chủ nhà và có thỏa thuận biên nhận rõ ràng. Kiểm tra mọi điều khoản và yêu cầu liệt kê tất cả chi phí hàng tháng vào hợp đồng.
+                        </p>
+                    </div>
+                    <div className="p-6">
+                        <p className="text-red-400 text-xs leading-relaxed italic border-l-2 border-orange-500/30 pl-4">
+                            Mọi thông tin liên quan đến tin đăng này trên zeRoom chỉ mang tính chất tham khảo. Nếu bạn thấy rằng tin đăng này không đúng hoặc có dấu hiệu lừa đảo, hãy phản ánh ngay với chúng tôi bằng cách nhấp vào nút báo cáo để được hỗ trợ kịp thời.
+                        </p>
+                    </div>
+                </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>

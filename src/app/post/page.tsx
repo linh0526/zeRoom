@@ -12,9 +12,8 @@ import {
   CheckCircle,
   ChevronRight,
   Info,
-  Search,
   X,
-  ScrollText
+  ScrollText,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
@@ -25,9 +24,6 @@ const MapPicker = dynamic(() => import("./components/MapPicker"), {
   ssr: false,
   loading: () => <div className="w-full h-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center text-gray-400 font-bold uppercase tracking-widest">Đang tải bản đồ...</div>
 });
-
-// DEFAULT_AMENITIES moved or removed as per user request
-
 
 export default function PostRentalPage() {
   return (
@@ -47,6 +43,7 @@ function PostRentalContent() {
     address: "",
     displayAddress: "",
     areaInfo: "",
+    selectedDistrict: "",
     price: "",
     areaSize: "",
     availableDate: today,
@@ -54,33 +51,60 @@ function PostRentalContent() {
     lat: 10.762622,
     lng: 106.660172,
     searchCounter: 0,
+    locationSelected: false,
     bedrooms: "1",
     images: [] as string[],
+    amenities: [] as string[],
     note: ""
   });
 
+  const AMENITIES = [
+    { label: "Wifi / Internet"},
+    { label: "Máy lạnh"},
+    { label: "Máy giặt"},
+    { label: "Tủ lạnh"},
+    { label: "Giờ giấc tự do"},
+    { label: "Không chung chủ"},
+    { label: "Chỗ để xe"},
+    { label: "An ninh / Camera"},
+    { label: "Đầy đủ nội thất"},
+    { label: "Có thang máy"},
+    { label: "Có ban công"},
+    { label: "Gần chợ/siêu thị"},
+  ];
+
+  const toggleAmenity = (label: string) => {
+    setFormData(prev => ({
+      ...prev,
+      amenities: prev.amenities.includes(label)
+        ? prev.amenities.filter(a => a !== label)
+        : [...prev.amenities, label]
+    }));
+  };
+
+  const DANANG_DISTRICTS = [
+    "Liên Chiểu",
+    "Thanh Khê",
+    "Hải Châu",
+    "Sơn Trà",
+    "Ngũ Hành Sơn",
+    "Cẩm Lệ",
+    "Hòa Vang"
+  ];
+
   const { data: session, status } = useSession();
   const isAdmin = (session?.user as any)?.role === "admin";
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       redirect("/auth/signin?callbackUrl=/post");
     }
   }, [status]);
-
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center font-sans">
-        <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Đang kiểm tra quyền truy cập...</p>
-      </div>
-    );
-  }
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (editId) {
@@ -103,6 +127,7 @@ function PostRentalContent() {
               lng: post.location?.lng || 106.660172,
               bedrooms: post.bedrooms?.toString() || "1",
               images: post.images || [],
+              amenities: post.amenities || [],
               note: post.note || "",
               availableDate: post.availableDate ? new Date(post.availableDate).toISOString().split('T')[0] : "2026-03-12",
               searchCounter: 1
@@ -116,8 +141,23 @@ function PostRentalContent() {
     }
   }, [editId]);
 
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center font-sans">
+        <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Đang kiểm tra quyền truy cập...</p>
+      </div>
+    );
+  }
+
+
   const handleSubmit = async () => {
-    if (!formData.address || !formData.price || !formData.phone) {
+    if (!formData.locationSelected) {
+      toast.error("Vui lòng chọn vị trí trên bản đồ bằng cách nhấp vào bản đồ hoặc tìm kiếm địa chỉ");
+      return;
+    }
+
+    if (!formData.displayAddress || !formData.selectedDistrict || !formData.price || !formData.phone) {
       toast.error("Vui lòng điền đầy đủ các thông tin bắt buộc (*)");
       return;
     }
@@ -259,47 +299,39 @@ function PostRentalContent() {
     // Tạo địa chỉ sạch: Địa chỉ chính + khu vực đã lọc
     const cleanAddress = mainAddress + (area ? ", " + area : "");
     
-    setFormData(prev => ({
-      ...prev,
-      lat,
-      lng,
-      address: cleanAddress,
-      displayAddress: mainAddress || prev.displayAddress,
-      areaInfo: area || prev.areaInfo,
-      title: mainAddress ? `${mainAddress}` : prev.title,
-      searchCounter: prev.searchCounter + 1
-    }));
-  };
-
-  const [isSearching, setIsSearching] = useState(false);
-  const handleSearch = async () => {
-    const rawAddress = formData.address.trim();
-    if (!rawAddress) return;
-    
-    setIsSearching(true);
-    try {
-      let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(rawAddress)}&limit=1&addressdetails=1`);
-      let data = await response.json();
-      
-      if (!data || data.length === 0) {
-        const fallbackAddress = rawAddress.replace(/^\d+[\s\w]*?,?\s*/, "");
-        if (fallbackAddress && fallbackAddress !== rawAddress) {
-          response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fallbackAddress)}&limit=1&addressdetails=1`);
-          data = await response.json();
-        }
-      }
-
-      if (data && data.length > 0) {
-        const { lat, lon, display_name } = data[0];
-        handleLocationSelect(parseFloat(lat), parseFloat(lon), display_name);
-      } else {
-        alert("Không tìm thấy địa chỉ cụ thể này trên bản đồ. Vui lòng chọn vị trí thủ công hoặc nhập tên đường.");
-      }
-    } catch (error) {
-      console.error("Search error:", error);
-    } finally {
-      setIsSearching(false);
+    // Tìm quận huyện và tỉnh thành từ kết quả tìm kiếm
+    // Lấy 2 phần cuối của địa chỉ đã lọc làm Khu vực (Ví dụ: "Phường Đạo Thạnh - Tỉnh Đồng Tháp")
+    let detectedDistrict = "";
+    if (filteredAreaParts.length >= 2) {
+      detectedDistrict = filteredAreaParts.slice(-2).join(" - ");
+    } else if (filteredAreaParts.length === 1) {
+      detectedDistrict = filteredAreaParts[0];
     }
+
+    // Nếu vẫn không tìm thấy, thử tìm trong danh sách mặc định của Đà Nẵng
+    if (!detectedDistrict) {
+      const matchedDanang = DANANG_DISTRICTS.find(d => 
+        address.toLowerCase().includes(d.toLowerCase())
+      );
+      if (matchedDanang) detectedDistrict = matchedDanang;
+    }
+
+    setFormData(prev => {
+      const newDistrict = detectedDistrict || prev.selectedDistrict;
+      return {
+        ...prev,
+        lat,
+        lng,
+        address: cleanAddress,
+        displayAddress: mainAddress || prev.displayAddress,
+        areaInfo: area || prev.areaInfo,
+        selectedDistrict: newDistrict,
+        // Tự động gán tiêu đề: [Địa chỉ] - [Khu vực]
+        title: mainAddress ? (newDistrict ? `${mainAddress} - ${newDistrict}` : mainAddress) : prev.title,
+        searchCounter: prev.searchCounter + 1,
+        locationSelected: true
+      };
+    });
   };
 
   return (
@@ -368,77 +400,69 @@ function PostRentalContent() {
             {/* 2. Địa chỉ & Bản đồ */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
               <div className="space-y-8">
-                <section className="space-y-2">
-                  <label htmlFor="addressSearch" className="text-[13px] font-bold text-gray-800">
-                    <span className="text-red-500">*</span> Nhập địa chỉ hoặc chọn vị trí trên bản đồ
-                  </label>
-                  <form 
-                    onSubmit={(e) => { e.preventDefault(); handleSearch(); }}
-                    className="relative"
-                  >
+                <section className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="addressSearch" className="text-[13px] font-bold text-gray-800 uppercase tracking-tight">
+                      <span className="text-red-500">*</span> Chọn vị trí trên bản đồ (bắt buộc)
+                    </label>
+                    {formData.selectedDistrict && (
+                      <div className="px-2.5 py-1 bg-green-50 text-green-700 rounded-lg text-[10px] font-black border border-green-100 flex items-center gap-1 animate-in fade-in zoom-in duration-300">
+                        <CheckCircle className="w-3 h-3" />
+                        KHU VỰC: {formData.selectedDistrict.toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div className="relative">
                     <input 
                       type="text" 
                       id="addressSearch"
-                      placeholder="Nhập địa chỉ bạn muốn tìm kiếm (Nhấn Enter để tìm)"
-                      className={`w-full pl-11 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 transition-all placeholder:text-gray-400 shadow-sm font-medium ${isSearching ? 'opacity-70' : ''}`}
+                      readOnly
+                      placeholder="Nhấp vào bản đồ bên phải để chọn vị trí..."
+                      className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500 outline-none cursor-not-allowed shadow-sm italic font-medium"
                       value={formData.address}
-                      onChange={(e) => setFormData({...formData, address: e.target.value})}
                     />
-                    <Search className={`absolute left-4 top-3.5 w-4 h-4 transition-colors ${isSearching ? 'text-orange-500 animate-pulse' : 'text-gray-400'}`} />
-                    {isSearching && (
-                      <div className="absolute right-4 top-3.5">
-                        <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-                      </div>
-                    )}
-                  </form>
+                    <MapPin className="absolute left-4 top-3.5 w-4 h-4 text-orange-500" />
+                  </div>
                 </section>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <section className="space-y-2">
-                    <label htmlFor="displayAddress" className="text-[13px] font-bold text-gray-800">
-                      <span className="text-red-500">*</span> Địa chỉ hiển thị khi đăng tin
-                    </label>
-                    <input 
-                      type="text" 
-                      id="displayAddress"
-                      placeholder="Nhập số nhà và tên đường..."
-                      className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-orange-500 transition-all shadow-sm font-medium"
-                      value={formData.displayAddress}
-                      onChange={(e) => setFormData({...formData, displayAddress: e.target.value})}
-                    />
-                  </section>
-                  <section className="space-y-2">
-                    <label htmlFor="areaInfo" className="text-[13px] font-bold text-gray-800">
-                      <span className="text-red-500">*</span> Phường/Xã, Quận/Huyện, Tỉnh/TP
-                    </label>
-                    <input 
-                      type="text" 
-                      id="areaInfo"
-                      readOnly
-                      placeholder="Phường Tân Định, Quận 1, Hồ Chí Minh"
-                      className="w-full px-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-xl text-sm text-gray-500 outline-none shadow-sm font-medium cursor-not-allowed"
-                      value={formData.areaInfo}
-                    />
-                  </section>
-                </div>
+                <section className="space-y-2">
+                  <label htmlFor="displayAddress" className="text-[13px] font-bold text-gray-800">
+                    <span className="text-red-500">*</span> Địa chỉ hiển thị (Số nhà, tên đường)
+                  </label>
+                  <input 
+                    type="text" 
+                    id="displayAddress"
+                    placeholder="Ví dụ: Nguyễn Thị Thập p10"
+                    className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-orange-500 transition-all shadow-sm font-medium"
+                    value={formData.displayAddress}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData({
+                        ...formData, 
+                        displayAddress: val,
+                        title: formData.selectedDistrict ? `${val} - ${formData.selectedDistrict}` : val
+                      });
+                    }}
+                  />
+                </section>
                 <p className="text-[11px] text-orange-600 font-bold cursor-pointer hover:underline flex items-center gap-1">
                   <Info className="w-3 h-3" />
-                  (Sửa lại địa chỉ này nếu trên bản đồ chưa hiển thị đúng vị trí)
+                  (Địa chỉ hiển thị và Quận/Huyện sẽ được dùng để tạo tiêu đề tin đăng)
                 </p>
 
                 <section className="space-y-2">
                    <label htmlFor="postTitle" className="text-[13px] font-bold text-gray-800">
-                    <span className="text-red-500">*</span> Tên hiển thị cho đăng tin
+                    <span className="text-red-500">*</span> Tên hiển thị (Tiêu đề bài viết)
                   </label>
                   <input 
                     type="text" 
                     id="postTitle"
                     placeholder="Ví dụ: 126 Hàm Nghi - Thạc Gián"
-                    className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-orange-500 transition-all shadow-sm font-semibold"
+                    className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500 outline-none focus:border-orange-500 transition-all shadow-sm font-semibold italic"
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
                   />
-                  <p className="text-[11px] text-orange-400 italic font-bold">(Gợi ý đặt tên: Căn hộ 3PN gần biển, Nhà Trọ An Bình,...)</p>
+                  <p className="text-[11px] text-orange-400 italic font-bold">(Tiêu đề này được tạo tự động để thống nhất, bạn vẫn có thể chỉnh sửa nếu cần)</p>
                 </section>
 
                 <section className="space-y-4">
@@ -510,10 +534,42 @@ function PostRentalContent() {
 
             {/* 3. Tiện nghi / Đặc điểm */}
             <section className="space-y-6 pt-4 border-t border-gray-50 mt-4">
-              <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Cấu trúc phòng</h2>
+              <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Tiện ích</h2>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+                {AMENITIES.map((item) => {
+                  const isSelected = formData.amenities.includes(item.label);
+                  return (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => toggleAmenity(item.label)}
+                      className={`flex items-center gap-3 p-3 rounded-2xl text-[12px] font-bold border transition-all ${
+                        isSelected
+                          ? "bg-orange-50 border-orange-100 text-orange-600 shadow-sm"
+                          : "bg-white border-gray-100 text-gray-400 hover:border-gray-200"
+                      }`}
+                    >
+                      <div className="relative flex items-center justify-center shrink-0">
+                        <input 
+                          type="checkbox" 
+                          checked={isSelected}
+                          readOnly
+                          className={`appearance-none w-5 h-5 border-2 rounded-md transition-all cursor-pointer ${
+                            isSelected ? "bg-orange-600 border-orange-600" : "bg-white border-gray-200"
+                          }`}
+                        />
+                        {isSelected && <CheckCircle className="absolute w-3.5 h-3.5 text-white pointer-events-none" />}
+                      </div>
+                      <span className={isSelected ? "text-orange-600" : "text-gray-500"}>
+                        {item.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
 
-
-              <div className="pt-6 border-t border-gray-100 flex items-center gap-6">
+              <div className="pt-8 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center gap-6">
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="relative flex items-center justify-center">
                     <input 
@@ -524,22 +580,22 @@ function PostRentalContent() {
                     />
                     <CheckCircle className="absolute w-3.5 h-3.5 text-white pointer-events-none" />
                   </div>
-                  <label htmlFor="bedrooms" className="text-[13px] font-bold text-gray-800 flex items-center gap-1">
+                  <label htmlFor="bedrooms" className="text-[13px] font-bold text-gray-800 flex items-center gap-1 uppercase">
                     <span className="text-red-500">*</span> Số phòng ngủ
                   </label>
                 </div>
                 
-                <div className="relative max-w-[150px] flex-1">
+                <div className="relative max-w-[150px] w-full">
                   <input 
                     type="number" 
                     id="bedrooms"
                     min="1"
                     placeholder="1"
-                    className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-orange-500 transition-all shadow-sm"
+                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-900 font-bold outline-none focus:border-orange-500 transition-all shadow-sm"
                     value={formData.bedrooms}
                     onChange={(e) => setFormData({...formData, bedrooms: e.target.value})}
                   />
-                  <span className="absolute right-4 top-1.5 text-[11px] text-gray-400 font-bold">PN</span>
+                  <span className="absolute right-4 top-2 text-[11px] text-gray-400 font-bold">PN</span>
                 </div>
               </div>
             </section>
@@ -597,7 +653,7 @@ function PostRentalContent() {
                 </div>
               </section>
               <section className="space-y-2">
-                <label htmlFor="phone" className="text-[13px) font-bold text-gray-800">
+                <label htmlFor="phone" className="text-[13px] font-bold text-gray-800">
                   <span className="text-red-500">*</span> Số điện thoại
                 </label>
                 <div className="relative">
@@ -679,7 +735,7 @@ function PostRentalContent() {
                 </div>
               </div>
             </div>
-
+                  
           </div>
         </div>
       </div>

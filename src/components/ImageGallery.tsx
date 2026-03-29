@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
+import SafeImage from "./SafeImage";
 import { ChevronLeft, ChevronRight, X, Home } from "lucide-react";
 
 interface ImageGalleryProps {
@@ -78,14 +78,13 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
           className="relative rounded-3xl overflow-hidden aspect-[16/9] shadow-md cursor-pointer group bg-gray-100"
           onClick={() => setIsModalOpen(true)}
         >
-          <Image 
+          <SafeImage 
             src={images[currentIndex]} 
             alt={`${title} - image ${currentIndex + 1}`} 
             priority
             fill
             sizes="(max-width: 1200px) 100vw, 800px"
             className="object-cover transition-transform duration-500 group-hover:scale-105"
-            unoptimized={images[currentIndex]?.includes("scontent")}
           />
           
 
@@ -132,13 +131,12 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
                   currentIndex === idx ? "ring-2 ring-orange-600 ring-offset-2 scale-100 opacity-100" : "opacity-60 hover:opacity-100 scale-95 hover:scale-100"
                 }`}
               >
-                <Image 
+                <SafeImage 
                   src={img} 
                   alt={`Thumbnail ${idx + 1}`} 
                   fill 
                   sizes="96px" 
                   className="object-cover" 
-                  unoptimized={img?.includes("scontent")}
                 />
               </button>
             ))}
@@ -166,13 +164,12 @@ export default function ImageGallery({ roomId, title }: ImageGalleryProps) {
           </button>
 
           <div className="relative w-[90vw] h-[90vh]">
-            <Image 
+            <SafeImage 
               src={images[currentIndex]} 
               alt={`${title} - image ${currentIndex + 1}`} 
               fill
               sizes="100vw"
               className="object-contain select-none"
-              unoptimized={images[currentIndex]?.includes("scontent")}
             />
           </div>
 

@@ -97,26 +97,54 @@ export const mapExcelToPosts = (data: any[]): any[] => {
       row[cleanKey] = rawRow[key];
     });
 
-    const title = findValue(row, "Tên") || "Tiêu đề chưa rõ";
+    const rawTitle = findValue(row, "Tên") || "";
     const address = findValue(row, "Địa chỉ") || "Địa chỉ chưa rõ";
+    const coordsStr = findValue(row, "Tọa độ", "Vị trí", "Coordinates", "Vị trí trên bản đồ") || "";
     const description = (findValue(row, "Thông tin mô tả") || "").toString().replace(/(\/n|\\n)/g, "\n");
     const imagesStr = findValue(row, "Ảnh minh họa") || "";
     const amenitiesStr = findValue(row, "Tiện ích") || "";
     const priceStr = findValue(row, "Giá") || "0";
     const areaSizeStr = findValue(row, "Diện tích") || "0";
     const phoneStr = findValue(row, "SĐT") || "";
+    const bedroomsStr = findValue(row, "Phòng ngủ", "PN") || "1";
+
+    // Phân tách địa chỉ để lấy Khu vực (2 phần cuối)
+    const addrParts = address.split(",").map((p: string) => p.trim());
+    const displayAddr = addrParts[0] || "";
+    const areaParts = addrParts.slice(1).filter((p: string) => !(/^\d+$/.test(p)) && p.toLowerCase() !== "việt nam" && p.toLowerCase() !== "vietnam");
+    
+    let district = "";
+    if (areaParts.length >= 2) {
+      district = areaParts.slice(-2).join(" - ");
+    } else if (areaParts.length === 1) {
+      district = areaParts[0];
+    }
+
+    // Tự động gán tiêu đề nếu tiêu đề từ Excel trống: [Địa chỉ] - [Khu vực]
+    const finalTitle = rawTitle || (district ? `${displayAddr} - ${district}` : displayAddr);
+
+    // Xử lý tọa độ
+    let lat = 10.762622;
+    let lng = 106.660172;
+    if (coordsStr && coordsStr.includes(",")) {
+      const [rawLat, rawLng] = coordsStr.split(",").map((s: string) => s.trim());
+      lat = parseFloat(rawLat) || lat;
+      lng = parseFloat(rawLng) || lng;
+    }
 
     return {
-      title,
-      address,
-      displayAddress: address,
+      title: finalTitle,
+      address: address,
+      displayAddress: displayAddr,
       phone: phoneStr.toString().replace(/[^0-9]/g, ""),
       price: parseFloat(priceStr.toString()) * (priceStr.toString().includes("triệu") || priceStr.toString().length < 4 ? 1000000 : 1),
       areaSize: parseFloat(areaSizeStr.toString()) || 0,
+      bedrooms: parseInt(bedroomsStr.toString()) || 1,
       amenities: amenitiesStr.toString().split("|").map((s: string) => s.trim()).filter(Boolean),
       images: imagesStr.toString().split("|").map((s: string) => s.trim()).filter((s: string) => s.startsWith("http")),
       areaInfo: description,
       note: description,
+      location: { lat, lng },
       category: "Thuê trọ",
       status: "approved",
       postedByAdmin: true

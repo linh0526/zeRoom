@@ -71,7 +71,7 @@ export async function GET(req: Request) {
     };
     
     if (includeImages) {
-      projection.images = { $slice: 1 };
+      projection.images = 1;
     }
 
     let query = Post.find({ status: "approved" })

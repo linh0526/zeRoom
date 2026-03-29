@@ -1,9 +1,9 @@
 "use client";
 
+import SafeImage from "./SafeImage";
 import { Search, SlidersHorizontal, MapPin, Home, Wifi, Wind, ShieldCheck, Car, X, ChevronLeft, Navigation, Clock, ChevronRight, Filter } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { getRelativeTime } from "@/lib/formatDate";
 import FilterModal from "./FilterModal";
 import { cleanAddress } from "@/lib/addressUtils";
@@ -28,32 +28,12 @@ interface SidebarProps {
   selectedRoom?: any;
   onRoomSelect?: (room: any | null) => void;
   loading?: boolean;
+  filters: any;
 }
 
-export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSelect, loading }: SidebarProps) {
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(15000000);
-  const [minArea, setMinArea] = useState(0);
-  const [category, setCategory] = useState("all");
-  const [sortBy, setSortBy] = useState("newest");
-  const [bedrooms, setBedrooms] = useState("all");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [search, setSearch] = useState("");
-
+export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSelect, loading, filters }: SidebarProps) {
   const handleApplyFilters = (newFilters: any) => {
-    setMinPrice(newFilters.minPrice);
-    setMaxPrice(newFilters.maxPrice);
-    setMinArea(newFilters.minArea);
-    setCategory(newFilters.category);
-    setSortBy(newFilters.sortBy);
-    setBedrooms(newFilters.bedrooms);
-    
-    onFilterChange({ ...newFilters, search });
-  };
-
-  const handleSearchChange = (val: string) => {
-    setSearch(val);
-    onFilterChange({ minPrice, maxPrice, minArea, category, sortBy, bedrooms, search: val });
+    onFilterChange(newFilters);
   };
 
   return (
@@ -62,32 +42,6 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
         
         {!selectedRoom ? (
           <>
-            {/* Search and Toggle Filter */}
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
-                <input 
-                  type="text" 
-                  placeholder="Bạn muốn tìm gì?" 
-                  aria-label="Tìm kiếm địa điểm"
-                  value={search}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-none rounded-xl text-sm text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                />
-              </div>
-              <button 
-                onClick={() => setIsModalOpen(true)}
-                className={`p-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2 ${isModalOpen || category !== "all" || bedrooms !== "all" ? 'bg-orange-500 text-white shadow-orange-100' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
-                aria-label="Mở bộ lọc"
-              >
-                <SlidersHorizontal className="w-5 h-5" />
-                <span className="text-xs font-bold whitespace-nowrap hidden sm:block">Lọc</span>
-                {(category !== "all" || bedrooms !== "all") && (
-                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                )}
-              </button>
-            </div>
-            
             {/* Quick Chips categories */}
             <div className="flex flex-col gap-3">
               <div className="flex gap-2 pb-1 overflow-x-auto no-scrollbar">
@@ -95,20 +49,20 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                   Loại:
                 </span>
                 <button 
-                  onClick={() => handleApplyFilters({ minPrice, maxPrice, minArea, category: category === "Thuê trọ" ? "all" : "Thuê trọ", sortBy, bedrooms })}
-                  className={`px-4 py-2 rounded-full text-[10px] font-black tracking-widest whitespace-nowrap transition-all border active:scale-95 ${category === "Thuê trọ" ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
+                  onClick={() => handleApplyFilters({ ...filters, category: filters.category === "Thuê trọ" ? "all" : "Thuê trọ" })}
+                  className={`px-4 py-2 rounded-full text-[10px] font-black tracking-widest whitespace-nowrap transition-all border active:scale-95 ${filters.category === "Thuê trọ" ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
                 >
                   Phòng trọ
                 </button>
                 <button 
-                  onClick={() => handleApplyFilters({ minPrice, maxPrice, minArea, category: category === "Nhà nguyên căn" ? "all" : "Nhà nguyên căn", sortBy, bedrooms })}
-                  className={`px-4 py-2 rounded-full text-[10px] font-black tracking-widest whitespace-nowrap transition-all border active:scale-95 ${category === "Nhà nguyên căn" ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
+                  onClick={() => handleApplyFilters({ ...filters, category: filters.category === "Nhà nguyên căn" ? "all" : "Nhà nguyên căn" })}
+                  className={`px-4 py-2 rounded-full text-[10px] font-black tracking-widest whitespace-nowrap transition-all border active:scale-95 ${filters.category === "Nhà nguyên căn" ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
                 >
                   Nhà nguyên căn
                 </button>
                 <button 
-                  onClick={() => handleApplyFilters({ minPrice, maxPrice, minArea, category: category === "Căn hộ / Dịch vụ" ? "all" : "Căn hộ / Dịch vụ", sortBy, bedrooms })}
-                  className={`px-4 py-2 rounded-full text-[10px] font-black tracking-widest whitespace-nowrap transition-all border active:scale-95 ${category === "Căn hộ / Dịch vụ" ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
+                  onClick={() => handleApplyFilters({ ...filters, category: filters.category === "Căn hộ / Dịch vụ" ? "all" : "Căn hộ / Dịch vụ" })}
+                  className={`px-4 py-2 rounded-full text-[10px] font-black tracking-widest whitespace-nowrap transition-all border active:scale-95 ${filters.category === "Căn hộ / Dịch vụ" ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
                 >
                   Căn hộ
                 </button>
@@ -126,33 +80,24 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                 ].map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => handleApplyFilters({ minPrice, maxPrice, minArea, category, sortBy: item.id, bedrooms })}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap border ${sortBy === item.id ? 'bg-orange-50 border-orange-200 text-orange-600 shadow-sm' : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'}`}
+                    onClick={() => handleApplyFilters({ ...filters, sortBy: item.id })}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black transition-all whitespace-nowrap border ${filters.sortBy === item.id ? 'bg-orange-50 border-orange-200 text-orange-600 shadow-sm' : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'}`}
                   >
                     {item.label}
                   </button>
                 ))}
               </div>
             </div>
-
-            <FilterModal 
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-              onApply={handleApplyFilters}
-              initialFilters={{ minPrice, maxPrice, minArea, category, sortBy, bedrooms }}
-            />
-
           </>
         ) : (
           <div className="space-y-4 animate-in slide-in-from-left-4 fade-in duration-300">
             <div className="relative w-full h-40 rounded-xl overflow-hidden mb-2 shadow-sm">
-              <Image 
-                src={selectedRoom.images?.[0] || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2340&auto=format&fit=crop'} 
+              <SafeImage 
+                src={selectedRoom.images?.[0]} 
                 alt={selectedRoom.title} 
                 fill 
                 sizes="(max-width: 768px) 100vw, 448px" 
                 className="object-cover" 
-                unoptimized={selectedRoom.images?.[0]?.includes("scontent") || false}
               />
             </div>
             <h2 className="text-lg font-bold text-gray-900 leading-tight">{selectedRoom.title}</h2>
@@ -230,33 +175,32 @@ export default function Sidebar({ rooms, onFilterChange, selectedRoom, onRoomSel
                 className={`flex flex-col gap-3 p-3 rounded-2xl transition-all border cursor-pointer ${selectedRoom?._id === room._id ? "bg-orange-50 border-orange-200" : "hover:bg-gray-50 border-gray-100 bg-white"} shadow-sm group`}
               >
                 <div className="flex gap-4">
-                  <div className="w-32 h-24 rounded-xl overflow-hidden flex-shrink-0 relative shadow-sm bg-gray-100 italic">
-                    {/* Shimmer Effect while image is missing */}
-                    {!room.images?.[0] && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 bg-[length:200%_100%] animate-[shimmer_1.5s_infinite] shadow-inner" />
-                    )}
-                    {room.images?.[0] ? (
-                      <Image 
-                        src={room.images[0]} 
+                  <Link 
+                    href={`/room/${room.slug || room._id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-32 h-24 rounded-xl overflow-hidden flex-shrink-0 relative shadow-sm bg-gray-100 italic cursor-pointer group-hover:shadow-md transition-shadow"
+                  >
+                      {/* Shimmer Effect while image is missing */}
+                      {!room.images?.[0] && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 bg-[length:200%_100%] animate-[shimmer_1.5s_infinite] shadow-inner" />
+                      )}
+                      <SafeImage 
+                        src={room.images?.[0]} 
                         alt={room.title} 
                         fill
                         sizes="128px"
                         className="object-cover group-hover:scale-110 transition-transform duration-700" 
-                        unoptimized={room.images[0]?.includes("scontent")}
                       />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
-                        <Home className="w-8 h-8 text-gray-200" />
-                      </div>
-                    )}
-                  </div>
+                  </Link>
                   <div className="flex flex-col justify-between py-0.5 flex-1 min-w-0">
                     <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 min-w-0">
+                      <div className="flex items-center gap-1 min-w-0">
                         <h4 className="text-sm font-bold text-gray-800 line-clamp-2 leading-tight group-hover:text-orange-600 flex-1">{room.title}</h4>
-                        {room.user?.isVerified && (
-                          <ShieldCheck className="w-4 h-4 text-orange-600 fill-orange-50 shrink-0" />
-                        )}
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          {room.user?.isVerified && (
+                            <ShieldCheck className="w-4 h-4 text-orange-600 fill-orange-50" />
+                          )}
+                        </div>
                       </div>
                       <p className="text-[10px] text-gray-400 line-clamp-1 flex items-center gap-0.5">
                         <MapPin className="w-2.5 h-2.5 shrink-0 text-orange-500/70" />
